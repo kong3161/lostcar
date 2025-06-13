@@ -69,10 +69,8 @@ async def handle_form(
         message = "ส่งข้อมูลเรียบร้อยแล้ว ✅"
     except httpx.HTTPStatusError:
         message = (
-            f"❗ เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase:
-"
-            f"Status: {response.status_code}
-"
+            f"❗ เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase:\n"
+            f"Status: {response.status_code}\n"
             f"Details: {response.text}"
         )
 
