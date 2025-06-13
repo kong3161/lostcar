@@ -40,6 +40,7 @@
             border: 1px solid #ccc;
             font-size: 0.95rem;
             text-align: left;
+            vertical-align: top;
         }
 
         th {
@@ -66,6 +67,10 @@
             border-radius: 8px;
         }
 
+        iframe {
+            margin-top: 10px;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -77,25 +82,33 @@
         <table>
             <thead>
                 <tr>
-                    <th>ประเภทรถ</th>
-                    <th>ยี่ห้อ</th>
-                    <th>รุ่น</th>
-                    <th>ทะเบียน</th>
-                    <th>สี</th>
-                    <th>ผู้แจ้ง</th>
-                    <th>วันที่หาย</th>
+                    <th>ข้อมูล</th>
+                    <th>รายละเอียด</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in results %}
                 <tr>
-                    <td>{{ item.vehicle_type or '' }}</td>
-                    <td>{{ item.brand or '' }}</td>
-                    <td>{{ item.model or '' }}</td>
-                    <td>{{ item.plate_prefix or '' }} {{ item.plate_number or '' }} {{ item.plate_province or '' }}</td>
-                    <td>{{ item.color or '' }}</td>
-                    <td>{{ item.reporter or '' }}</td>
-                    <td>{{ item.date_lost or '' }}</td>
+                    <td>
+                        <strong>ประเภทรถ:</strong> {{ item.vehicle_type or '-' }}<br>
+                        <strong>ยี่ห้อ:</strong> {{ item.brand or '-' }}<br>
+                        <strong>รุ่น:</strong> {{ item.model or '-' }}<br>
+                        <strong>ทะเบียน:</strong> {{ item.plate_prefix or '' }} {{ item.plate_number or '' }} {{ item.plate_province or '' }}<br>
+                        <strong>สี:</strong> {{ item.color or '-' }}<br>
+                        <strong>ผู้แจ้ง:</strong> {{ item.reporter or '-' }}<br>
+                        <strong>วันที่หาย:</strong> {{ item.date_lost or '-' }}<br>
+                        <strong>พฤติการณ์:</strong> {{ item.details or '-' }}<br>
+                        <strong>สถานที่:</strong> {{ item.location or '-' }}
+                    </td>
+                    <td>
+                        {% if item.lat and item.lng %}
+                            <iframe width="100%" height="300" frameborder="0"
+                            src="https://maps.google.com/maps?q={{ item.lat }},{{ item.lng }}&hl=th&z=16&output=embed">
+                            </iframe>
+                        {% else %}
+                            ไม่มีพิกัด
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
