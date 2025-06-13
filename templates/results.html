@@ -1,48 +1,120 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
+    <meta charset="UTF-8">
     <title>ผลการค้นหา</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 1.8rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        .no-results {
+            text-align: center;
+            color: gray;
+            margin-top: 2rem;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .debug {
+            font-size: 0.8rem;
+            color: gray;
+            margin-top: 2rem;
+            background-color: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+    </style>
 </head>
 <body>
-    <h2>📋 ผลการค้นหา</h2>
+
+<div class="container">
+    <h1>📋 ผลการค้นหาข้อมูลรถหาย</h1>
+
     {% if results %}
-    <table border="1">
-        <thead>
-            <tr>
-                <th>ประเภท</th>
-                <th>ยี่ห้อ</th>
-                <th>รุ่น</th>
-                <th>วันที่หาย</th>
-                <th>สถานที่</th>
-                <th>ผู้แจ้ง</th>
-                <th>Map</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for r in results %}
-            <tr>
-                <td>{{ r.vehicle_type }}</td>
-                <td>{{ r.brand }}</td>
-                <td>{{ r.model }}</td>
-                <td>{{ r.date_lost }}</td>
-                <td>{{ r.location }}</td>
-                <td>{{ r.reporter }}</td>
-                <td>
-                    {% if r.lat and r.lng %}
-                    <a href="https://www.google.com/maps?q={{ r.lat }},{{ r.lng }}" target="_blank">ดูแผนที่</a>
-                    {% else %}
-                    -
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>ประเภทรถ</th>
+                    <th>ยี่ห้อ</th>
+                    <th>รุ่น</th>
+                    <th>ทะเบียน</th>
+                    <th>สี</th>
+                    <th>ผู้แจ้ง</th>
+                    <th>วันที่หาย</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in results %}
+                <tr>
+                    <td>{{ item.vehicle_type or '' }}</td>
+                    <td>{{ item.brand or '' }}</td>
+                    <td>{{ item.model or '' }}</td>
+                    <td>{{ item.plate_prefix or '' }} {{ item.plate_number or '' }} {{ item.plate_province or '' }}</td>
+                    <td>{{ item.color or '' }}</td>
+                    <td>{{ item.reporter or '' }}</td>
+                    <td>{{ item.date_lost or '' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
-    <p>ไม่พบข้อมูลที่ตรงกับเงื่อนไข</p>
+        <div class="no-results">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div>
     {% endif %}
-    <br>
-    <a href="/search">🔙 กลับไปค้นหา</a>
+
+    <div class="back-link">
+        <a href="/search">🔙 กลับไปหน้าค้นหา</a>
+    </div>
+
+    <div class="debug">
+        <strong>🔎 Debug</strong><br>
+        URL: {{ debug_url }}<br>
+        Status: {{ debug_status }}<br>
+        Response: {{ debug_raw }}
+    </div>
+</div>
+
 </body>
 </html>
