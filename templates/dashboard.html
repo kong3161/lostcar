@@ -67,11 +67,11 @@
         data: {
           labels: labels,
           datasets: [{
-            backgroundColor: labels.map((_, i) => [
-              '#f87171','#fb923c','#facc15',
-              '#4ade80','#60a5fa','#a78bfa',
-              '#f472b6','#34d399'
-            ][i % 8]),
+            backgroundColor: labels.map((_, i) => {
+              const colors = ['#f87171', '#fb923c', '#facc15', '#4ade80',
+                              '#60a5fa', '#a78bfa', '#f472b6', '#34d399'];
+              return colors[i % colors.length];
+            }),
             label: "จำนวนรถที่หาย",
             data: data,
             backgroundColor: "rgba(54, 162, 235, 0.6)"
@@ -81,6 +81,14 @@
           responsive: true,
           plugins: {
             legend: { display: false },
+            datalabels: {
+              anchor: 'end',
+              align: 'end',
+              offset: 6,
+              color: '#333',
+              font: { weight: 'bold', size: 12 },
+              formatter: value => Math.round(value)
+            },
             datalabels: {
               anchor: 'end',
               align: 'end',
@@ -111,11 +119,11 @@
         data: {
           labels: labels,
           datasets: [{
-            backgroundColor: labels.map((_, i) => [
-              '#f87171','#fb923c','#facc15',
-              '#4ade80','#60a5fa','#a78bfa',
-              '#f472b6','#34d399'
-            ][i % 8]),
+            backgroundColor: labels.map((_, i) => {
+              const colors = ['#f87171', '#fb923c', '#facc15', '#4ade80',
+                              '#60a5fa', '#a78bfa', '#f472b6', '#34d399'];
+              return colors[i % colors.length];
+            }),
             label: "แจ้งหายในช่วงเวลา",
             data: data,
             backgroundColor: ["#0074D9", "#2ECC40", "#FF851B"]
@@ -125,6 +133,14 @@
           responsive: true,
           plugins: {
             legend: { display: false },
+            datalabels: {
+              anchor: 'end',
+              align: 'end',
+              offset: 6,
+              color: '#333',
+              font: { weight: 'bold', size: 12 },
+              formatter: value => Math.round(value)
+            },
             datalabels: {
               color: '#000',
               font: { weight: 'bold', size: 12 },
