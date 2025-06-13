@@ -1,48 +1,112 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
+    <meta charset="UTF-8">
     <title>ค้นหารถหาย</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 12px 0 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #1a242f;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+    </style>
 </head>
 <body>
-    <h2>🔍 ค้นหาข้อมูลรถหาย</h2>
-    <form action="/results" method="get">
-        <label>ประเภทรถ:</label>
-        <select name="vehicle_type">
-            <option value="">-- เลือก --</option>
-            <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
-            <option value="รถยนต์">รถยนต์</option>
-            <option value="อื่น ๆ">อื่น ๆ</option>
-        </select><br><br>
 
-        <label>ยี่ห้อ:</label>
-        <input type="text" name="brand"><br><br>
+    <div class="container">
+        <h1>🔍 ค้นหาข้อมูลรถหาย</h1>
 
-        <label>รุ่น:</label>
-        <input type="text" name="model"><br><br>
+        <form action="/results" method="get">
+            <label>ประเภทรถ:</label>
+            <select name="vehicle_type">
+                <option value="">-- เลือก --</option>
+                <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
+                <option value="รถยนต์">รถยนต์</option>
+                <option value="อื่น ๆ">อื่น ๆ</option>
+            </select>
 
-        <label>วันที่หาย:</label>
-        <input type="date" name="date_lost"><br><br>
+            <label>ยี่ห้อ:</label>
+            <input type="text" name="brand">
 
-        <label>ชื่อผู้แจ้ง:</label>
-        <input type="text" name="reporter"><br><br>
+            <label>รุ่น:</label>
+            <input type="text" name="model">
 
-        <label>สีรถ:</label>
-        <input type="text" name="color"><br><br>
+            <label>วันที่หาย:</label>
+            <input type="date" name="date_lost">
 
-        <label>เลขทะเบียน:</label>
-        <input type="text" name="plate_number"><br><br>
+            <label>ชื่อผู้แจ้ง:</label>
+            <input type="text" name="reporter">
 
-        <label>เลขเครื่อง:</label>
-        <input type="text" name="engine_number"><br><br>
+            <label>สีรถ:</label>
+            <input type="text" name="color">
 
-        <label>เลขตัวรถ:</label>
-        <input type="text" name="chassis_number"><br><br>
+            <label>เลขทะเบียน:</label>
+            <input type="text" name="plate_number">
 
-        <button type="submit">ค้นหา</button>
-    </form>
+            <label>เลขเครื่อง:</label>
+            <input type="text" name="engine_number">
 
-    <hr>
-    <a href="/">🔙 กลับไปหน้าแจ้งรถหาย</a>
+            <label>เลขตัวรถ:</label>
+            <input type="text" name="chassis_number">
+
+            <button type="submit">ค้นหา</button>
+        </form>
+
+        <div class="back-link">
+            <a href="/">🔙 กลับไปหน้าแจ้งรถหาย</a>
+        </div>
+    </div>
+
 </body>
 </html>
