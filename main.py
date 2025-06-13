@@ -24,6 +24,12 @@ async def handle_form(
     vehicle_type: str = Form(...),
     brand: str = Form(...),
     model: str = Form(...),
+    color: str = Form(""),
+    plate_prefix: str = Form(""),
+    plate_number: str = Form(""),
+    plate_province: str = Form(""),
+    engine_number: str = Form(""),
+    chassis_number: str = Form(""),
     date_lost: str = Form(...),
     time_event: str = Form(...),
     time_reported: str = Form(...),
@@ -34,21 +40,18 @@ async def handle_form(
     details: str = Form(...),
     files: list[UploadFile] = File(None)
 ):
-    # Convert date/time fields to ISO format for Supabase
     try:
-        date_lost_parsed = datetime.strptime(date_lost, "%d/%m/%Y").date().isoformat()
-    except ValueError:
-        date_lost_parsed = None
-
+        date_lost = datetime.strptime(date_lost, "%Y-%m-%d").date().isoformat()
+    except Exception:
+        date_lost = None
     try:
-        time_event_parsed = datetime.strptime(time_event, "%H:%M").time().isoformat()
-    except ValueError:
-        time_event_parsed = None
-
+        time_event = datetime.strptime(time_event, "%H:%M").time().isoformat()
+    except Exception:
+        time_event = None
     try:
-        time_reported_parsed = datetime.strptime(time_reported, "%H:%M").time().isoformat()
-    except ValueError:
-        time_reported_parsed = None
+        time_reported = datetime.strptime(time_reported, "%H:%M").time().isoformat()
+    except Exception:
+        time_reported = None
 
     uploaded_at = datetime.utcnow().isoformat()
 
@@ -56,9 +59,15 @@ async def handle_form(
         "vehicle_type": vehicle_type,
         "brand": brand,
         "model": model,
-        "date_lost": date_lost_parsed,
-        "time_event": time_event_parsed,
-        "time_reported": time_reported_parsed,
+        "color": color,
+        "plate_prefix": plate_prefix,
+        "plate_number": plate_number,
+        "plate_province": plate_province,
+        "engine_number": engine_number,
+        "chassis_number": chassis_number,
+        "date_lost": date_lost,
+        "time_event": time_event,
+        "time_reported": time_reported,
         "location": location,
         "lat": lat,
         "lng": lng,
@@ -80,14 +89,20 @@ async def handle_form(
             headers=headers
         )
 
-    message = (
-        f"<b>ผลลัพธ์จาก Supabase</b><br>"
-        f"<b>Status:</b> {response.status_code}<br>"
-        f"<b>ส่งข้อมูล:</b> {data}<br>"
-        f"<b>คำตอบ:</b> {response.text}"
-    )
+    try:
+        response.raise_for_status()
+        message = "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
+    except httpx.HTTPStatusError:
+        message = (
+            f"❗ Supabase error:<br>"
+            f"<b>Status:</b> {response.status_code}<br>"
+            f"<b>Response:</b> {response.text}<br>"
+            f"<b>Sent data:</b> {data}"
+        )
 
-    return HTMLResponse(content=message, status_code=200)
-
-from search_router import router as search_router
-app.include_router(search_router)
+    return templates.TemplateResponse("submitted.html", {
+        "request": request,
+        "brand": brand,
+        "model": model,
+        "message": message
+    })
