@@ -22,22 +22,35 @@ async def search_results(request: Request,
                          brand: str = "",
                          model: str = "",
                          date_lost: str = "",
-                         reporter: str = ""):
+                         reporter: str = "",
+                         color: str = "",
+                         plate_number: str = "",
+                         engine_number: str = "",
+                         chassis_number: str = ""):
 
-    # Build query string
-    filters = []
+    or_conditions = []
+
     if vehicle_type:
-        filters.append(f'vehicle_type=eq.{vehicle_type}')
+        or_conditions.append(f"vehicle_type.eq.{vehicle_type}")
     if brand:
-        filters.append(f'brand=ilike.*{brand}*')
+        or_conditions.append(f"brand.ilike.*{brand}*")
     if model:
-        filters.append(f'model=ilike.*{model}*')
+        or_conditions.append(f"model.ilike.*{model}*")
     if date_lost:
-        filters.append(f'date_lost=eq.{date_lost}')
+        or_conditions.append(f"date_lost.eq.{date_lost}")
     if reporter:
-        filters.append(f'reporter=ilike.*{reporter}*')
+        or_conditions.append(f"reporter.ilike.*{reporter}*")
+    if color:
+        or_conditions.append(f"color.ilike.*{color}*")
+    if plate_number:
+        or_conditions.append(f"plate_number.ilike.*{plate_number}*")
+    if engine_number:
+        or_conditions.append(f"engine_number.ilike.*{engine_number}*")
+    if chassis_number:
+        or_conditions.append(f"chassis_number.ilike.*{chassis_number}*")
 
-    query = "&".join(filters)
+    or_query = ",".join(or_conditions)
+    query = f"or=({or_query})" if or_query else ""
     url = f"{SUPABASE_URL}/rest/v1/reports?{query}&order=date_lost.desc"
 
     headers = {
@@ -51,5 +64,8 @@ async def search_results(request: Request,
 
     return templates.TemplateResponse("results.html", {
         "request": request,
-        "results": results
+        "results": results,
+        "debug_url": url,
+        "debug_status": response.status_code,
+        "debug_raw": response.text
     })
