@@ -72,6 +72,7 @@
         data: {
           labels: labels,
           datasets: [{
+            clip: false,
             label: "",
             data: data,
             backgroundColor: labels.map((_, i) => colorPalette[i % colorPalette.length])
@@ -92,6 +93,11 @@
                 size: 12
               },
               formatter: value => Math.round(value)
+            }
+          },
+          layout: {
+            padding: {
+              top: 24
             }
           },
           scales: {
@@ -115,6 +121,7 @@
         data: {
           labels: labels,
           datasets: [{
+            clip: false,
             label: "แจ้งหายในช่วงเวลา",
             data: data,
             backgroundColor: ["#0074D9", "#2ECC40", "#FF851B"]
