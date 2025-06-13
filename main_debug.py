@@ -34,31 +34,15 @@ async def handle_form(
     details: str = Form(...),
     files: list[UploadFile] = File(None)
 ):
-    # Convert date/time fields to ISO format for Supabase
-    try:
-        date_lost_parsed = datetime.strptime(date_lost, "%d/%m/%Y").date().isoformat()
-    except ValueError:
-        date_lost_parsed = None
-
-    try:
-        time_event_parsed = datetime.strptime(time_event, "%H:%M").time().isoformat()
-    except ValueError:
-        time_event_parsed = None
-
-    try:
-        time_reported_parsed = datetime.strptime(time_reported, "%H:%M").time().isoformat()
-    except ValueError:
-        time_reported_parsed = None
-
     uploaded_at = datetime.utcnow().isoformat()
 
     data = {
         "vehicle_type": vehicle_type,
         "brand": brand,
         "model": model,
-        "date_lost": date_lost_parsed,
-        "time_event": time_event_parsed,
-        "time_reported": time_reported_parsed,
+        "date_lost": date_lost,
+        "time_event": time_event,
+        "time_reported": time_reported,
         "location": location,
         "lat": lat,
         "lng": lng,
@@ -81,10 +65,11 @@ async def handle_form(
         )
 
     message = (
-        f"<b>ผลลัพธ์จาก Supabase</b><br>"
+        f"<b>Supabase Response Debug</b><br>"
         f"<b>Status:</b> {response.status_code}<br>"
-        f"<b>ส่งข้อมูล:</b> {data}<br>"
-        f"<b>คำตอบ:</b> {response.text}"
+        f"<b>Headers:</b> {response.headers}<br>"
+        f"<b>Sent JSON:</b> {data}<br>"
+        f"<b>Response Text:</b> {response.text}"
     )
 
     return HTMLResponse(content=message, status_code=200)
