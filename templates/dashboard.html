@@ -40,10 +40,10 @@
       const chartId = `bar-${typeName.replace(/[^a-zA-Z0-9]/g, '')}`;
       const block = document.createElement("div");
       block.className = "chart-block";
-      block.innerHTML = `
-        <h3>🚗 รุ่นที่หาย - ประเภท: ${}typeName}</h3>
-        <canvas id="${}chartId}" height="100"></canvas>
-      `;
+      block.innerHTML = \`
+        <h3>🚗 รุ่นที่หาย - ประเภท: \${typeName}</h3>
+        <canvas id="\${chartId}" height="100"></canvas>
+      \`;
       container.appendChild(block);
       const ctx = document.getElementById(chartId);
       new Chart(ctx, {
