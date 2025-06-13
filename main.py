@@ -203,3 +203,46 @@ async def dashboard_data():
         "models": sorted_model_stats,
         "time_ranges": time_ranges
     }
+
+
+
+@app.get("/dashboard-data")
+async def dashboard_data():
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+
+    async with httpx.AsyncClient() as client:
+        res = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported", headers=headers)
+        data = res.json() if res.status_code == 200 else []
+
+    models_by_type = {}
+    time_ranges = {"00.01-08.00": 0, "08.01-16.00": 0, "16.01-24.00": 0}
+
+    for item in data:
+        vehicle_type = item.get("vehicle_type") or "ไม่ระบุประเภท"
+        model = item.get("model") or "ไม่ระบุรุ่น"
+        models_by_type.setdefault(vehicle_type, {})
+        models_by_type[vehicle_type][model] = models_by_type[vehicle_type].get(model, 0) + 1
+
+        time_str = item.get("time_reported")
+        if time_str:
+            hour, minute, *_ = map(int, time_str.split(":"))
+            total_minutes = hour * 60 + minute
+            if total_minutes < 480:
+                time_ranges["00.01-08.00"] += 1
+            elif total_minutes <= 960:
+                time_ranges["08.01-16.00"] += 1
+            else:
+                time_ranges["16.01-24.00"] += 1
+
+    # Sort each type by model count
+    for t in models_by_type:
+        sorted_items = sorted(models_by_type[t].items(), key=lambda x: x[1], reverse=True)
+        models_by_type[t] = dict(sorted_items)
+
+    return {
+        "models_by_type": models_by_type,
+        "time_ranges": time_ranges
+    }
