@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ระบบค้นหารถหาย</title>
+  <link rel="stylesheet" href="/static/tailwind.css">
+</head>
+<body class="p-4">
+  <h1 class="text-2xl font-bold mb-4">แจ้งรถหาย</h1>
+  <form action="/submit" method="post" enctype="multipart/form-data" class="space-y-4">
+    <select name="vehicle_type" class="border p-2 w-full">
+      <option>รถจักรยานยนต์</option>
+      <option>รถยนต์</option>
+      <option>อื่น ๆ</option>
+    </select>
+    <input type="text" name="brand" placeholder="ยี่ห้อ (อังกฤษ)" class="border p-2 w-full" required>
+    <input type="text" name="model" placeholder="รุ่น (อังกฤษ)" class="border p-2 w-full" required>
+    <input type="date" name="date_lost" class="border p-2 w-full" required>
+    <input type="time" name="time_event" class="border p-2 w-full" required>
+    <input type="time" name="time_reported" class="border p-2 w-full" required>
+    <input type="text" name="location" placeholder="สถานที่หาย" class="border p-2 w-full">
+    <input type="text" name="lat" placeholder="ละติจูด" class="border p-2 w-full">
+    <input type="text" name="lng" placeholder="ลองติจูด" class="border p-2 w-full">
+    <input type="text" name="reporter" placeholder="ชื่อผู้แจ้ง" class="border p-2 w-full">
+    <textarea name="details" placeholder="พฤติการณ์" class="border p-2 w-full"></textarea>
+    <input type="file" name="files" multiple class="w-full">
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">ส่งข้อมูล</button>
+  </form>
+</body>
+</html>
