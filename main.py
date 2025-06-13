@@ -42,7 +42,6 @@ async def handle_form(
     files: list[UploadFile] = File(None)
 ):
     uploaded_at = datetime.utcnow().isoformat()
-
     data = {
         "vehicle_type": vehicle_type,
         "brand": brand,
@@ -63,28 +62,15 @@ async def handle_form(
         "details": details,
         "uploaded_at": uploaded_at
     }
-
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
         "Content-Type": "application/json"
     }
-
     async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{SUPABASE_URL}/rest/v1/reports",
-            json=data,
-            headers=headers
-        )
-
+        response = await client.post(f"{SUPABASE_URL}/rest/v1/reports", json=data, headers=headers)
     message = "ส่งข้อมูลเรียบร้อยแล้ว ✅" if response.status_code in [200, 201] else f"เกิดข้อผิดพลาด: {response.status_code} - {response.text}"
-
-    return templates.TemplateResponse("submitted.html", {
-        "request": request,
-        "brand": brand,
-        "model": model,
-        "message": message
-    })
+    return templates.TemplateResponse("submitted.html", {"request": request, "brand": brand, "model": model, "message": message})
 
 @app.get("/search", response_class=HTMLResponse)
 async def search_form(request: Request):
@@ -106,54 +92,37 @@ async def search_results(
 ):
     PAGE_SIZE = 5
     offset = (page - 1) * PAGE_SIZE
-
     or_conditions = []
-    if vehicle_type:
-        or_conditions.append(f"vehicle_type.eq.{vehicle_type}")
-    if brand:
-        or_conditions.append(f"brand.ilike.*{brand}*")
-    if model:
-        or_conditions.append(f"model.ilike.*{model}*")
-    if date_lost:
-        or_conditions.append(f"date_lost.eq.{date_lost}")
-    if reporter:
-        or_conditions.append(f"reporter.ilike.*{reporter}*")
-    if color:
-        or_conditions.append(f"color.ilike.*{color}*")
-    if plate_number:
-        or_conditions.append(f"plate_number.ilike.*{plate_number}*")
-    if engine_number:
-        or_conditions.append(f"engine_number.ilike.*{engine_number}*")
-    if chassis_number:
-        or_conditions.append(f"chassis_number.ilike.*{chassis_number}*")
-
+    if vehicle_type: or_conditions.append(f"vehicle_type.eq.{vehicle_type}")
+    if brand: or_conditions.append(f"brand.ilike.*{brand}*")
+    if model: or_conditions.append(f"model.ilike.*{model}*")
+    if date_lost: or_conditions.append(f"date_lost.eq.{date_lost}")
+    if reporter: or_conditions.append(f"reporter.ilike.*{reporter}*")
+    if color: or_conditions.append(f"color.ilike.*{color}*")
+    if plate_number: or_conditions.append(f"plate_number.ilike.*{plate_number}*")
+    if engine_number: or_conditions.append(f"engine_number.ilike.*{engine_number}*")
+    if chassis_number: or_conditions.append(f"chassis_number.ilike.*{chassis_number}*")
     query = f"or=({','.join(or_conditions)})&order=uploaded_at.desc&limit={PAGE_SIZE}&offset={offset}" if or_conditions else f"order=uploaded_at.desc&limit={PAGE_SIZE}&offset={offset}"
-
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}"
     }
-
     async with httpx.AsyncClient() as client:
         res_data = await client.get(f"{SUPABASE_URL}/rest/v1/reports?{query}", headers=headers)
         results = res_data.json() if res_data.status_code == 200 else []
-
         count_query = f"{SUPABASE_URL}/rest/v1/reports?select=id"
         if or_conditions:
             count_query += f"&or=({','.join(or_conditions)})"
         res_count = await client.get(count_query, headers={**headers, "Range": "0-99999"})
-
         content_range = res_count.headers.get("Content-Range", "0/0")
         try:
             total = int(content_range.split("/")[-1])
         except:
             total = 0
         total_pages = max((total + PAGE_SIZE - 1) // PAGE_SIZE, 1)
-
     base_params = request.query_params.multi_items()
     base_params = [(k, v) for k, v in base_params if k != "page"]
     base_url = "/results?" + urlencode(base_params)
-
     return templates.TemplateResponse("results.html", {
         "request": request,
         "results": results,
@@ -172,60 +141,16 @@ async def dashboard_data():
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}"
     }
-
-    async with httpx.AsyncClient() as client:
-        res = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=brand,model,time_reported", headers=headers)
-        data = res.json() if res.status_code == 200 else []
-
-    # Model count
-    model_stats = {}
-    time_ranges = {"00.01-08.00": 0, "08.01-16.00": 0, "16.01-24.00": 0}
-
-    for item in data:
-        model = item.get("model") or "ไม่ระบุรุ่น"
-        model_stats[model] = model_stats.get(model, 0) + 1
-
-        time_str = item.get("time_reported")
-        if time_str:
-            hour, minute, *_ = map(int, time_str.split(":"))
-            total_minutes = hour * 60 + minute
-            if total_minutes < 480:
-                time_ranges["00.01-08.00"] += 1
-            elif total_minutes <= 960:
-                time_ranges["08.01-16.00"] += 1
-            else:
-                time_ranges["16.01-24.00"] += 1
-
-    # Sort model by frequency
-    sorted_model_stats = dict(sorted(model_stats.items(), key=lambda x: x[1], reverse=True))
-
-    return {
-        "models": sorted_model_stats,
-        "time_ranges": time_ranges
-    }
-
-
-
-@app.get("/dashboard-data")
-async def dashboard_data():
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
-
     async with httpx.AsyncClient() as client:
         res = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported", headers=headers)
         data = res.json() if res.status_code == 200 else []
-
     models_by_type = {}
     time_ranges = {"00.01-08.00": 0, "08.01-16.00": 0, "16.01-24.00": 0}
-
     for item in data:
         vehicle_type = item.get("vehicle_type") or "ไม่ระบุประเภท"
         model = item.get("model") or "ไม่ระบุรุ่น"
         models_by_type.setdefault(vehicle_type, {})
         models_by_type[vehicle_type][model] = models_by_type[vehicle_type].get(model, 0) + 1
-
         time_str = item.get("time_reported")
         if time_str:
             hour, minute, *_ = map(int, time_str.split(":"))
@@ -236,13 +161,7 @@ async def dashboard_data():
                 time_ranges["08.01-16.00"] += 1
             else:
                 time_ranges["16.01-24.00"] += 1
-
-    # Sort each type by model count
     for t in models_by_type:
         sorted_items = sorted(models_by_type[t].items(), key=lambda x: x[1], reverse=True)
         models_by_type[t] = dict(sorted_items)
-
-    return {
-        "models_by_type": models_by_type,
-        "time_ranges": time_ranges
-    }
+    return {"models_by_type": models_by_type, "time_ranges": time_ranges}
