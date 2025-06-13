@@ -5,7 +5,65 @@
   <meta charset="UTF-8" />
   <title>แดชบอร์ดระบบค้นหารถหาย</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js">
+Chart.defaults.font.family = 'Sarabun';
+
+function formatBarValue(value) {
+  return Math.round(value); // remove decimals
+}
+
+function addDataLabelsToBarChart(chart) {
+  chart.options.plugins = chart.options.plugins || {};
+  chart.options.plugins.datalabels = {
+    color: '#000',
+    anchor: 'end',
+    align: 'top',
+    formatter: formatBarValue
+  };
+}
+
+function addLabelsToPieChart(data, labels) {
+  const total = data.reduce((sum, val) => sum + val, 0);
+  return labels.map((label, i) => {
+    const value = data[i];
+    const percent = ((value / total) * 100).toFixed(1);
+    return `${label}: ${value} คัน (${percent}%)`;
+  });
+}
+
+fetchData().then(data => {
+  const container = document.getElementById("model-charts");
+  const modelsByType = data.models_by_type;
+  const timeStats = data.time_ranges;
+
+  for (const [typeName, models] of Object.entries(modelsByType)) {
+    const labels = Object.keys(models);
+    const values = Object.values(models);
+    createModelChart(container, typeName, labels, values);
+    const ctx = document.getElementById(`bar-${(typeName.replace(/[^a-zA-Z0-9]/g, '') || "type")}`);
+    if (ctx && ctx.chart) {
+      addDataLabelsToBarChart(ctx.chart);
+    }
+  }
+
+  const timeLabels = Object.keys(timeStats);
+  const timeCounts = Object.values(timeStats);
+  const pieChart = new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+      labels: addLabelsToPieChart(timeCounts, timeLabels),
+      datasets: [{
+        label: "แจ้งหายในช่วงเวลา",
+        data: timeCounts,
+        backgroundColor: ["#0074D9", "#2ECC40", "#FF851B"]
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+});
+</script>
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f8; margin: 0; padding: 2rem; }
     .container { max-width: 960px; margin: auto; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
@@ -98,6 +156,64 @@
       const timeCounts = Object.values(timeStats);
       renderPieChart(document.getElementById("pieChart"), timeLabels, timeCounts);
     });
-  </script>
+  
+Chart.defaults.font.family = 'Sarabun';
+
+function formatBarValue(value) {
+  return Math.round(value); // remove decimals
+}
+
+function addDataLabelsToBarChart(chart) {
+  chart.options.plugins = chart.options.plugins || {};
+  chart.options.plugins.datalabels = {
+    color: '#000',
+    anchor: 'end',
+    align: 'top',
+    formatter: formatBarValue
+  };
+}
+
+function addLabelsToPieChart(data, labels) {
+  const total = data.reduce((sum, val) => sum + val, 0);
+  return labels.map((label, i) => {
+    const value = data[i];
+    const percent = ((value / total) * 100).toFixed(1);
+    return `${label}: ${value} คัน (${percent}%)`;
+  });
+}
+
+fetchData().then(data => {
+  const container = document.getElementById("model-charts");
+  const modelsByType = data.models_by_type;
+  const timeStats = data.time_ranges;
+
+  for (const [typeName, models] of Object.entries(modelsByType)) {
+    const labels = Object.keys(models);
+    const values = Object.values(models);
+    createModelChart(container, typeName, labels, values);
+    const ctx = document.getElementById(`bar-${(typeName.replace(/[^a-zA-Z0-9]/g, '') || "type")}`);
+    if (ctx && ctx.chart) {
+      addDataLabelsToBarChart(ctx.chart);
+    }
+  }
+
+  const timeLabels = Object.keys(timeStats);
+  const timeCounts = Object.values(timeStats);
+  const pieChart = new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+      labels: addLabelsToPieChart(timeCounts, timeLabels),
+      datasets: [{
+        label: "แจ้งหายในช่วงเวลา",
+        data: timeCounts,
+        backgroundColor: ["#0074D9", "#2ECC40", "#FF851B"]
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+});
+</script>
 </body>
 </html>
