@@ -3,6 +3,7 @@ from fastapi import FastAPI, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 import os
 import httpx
 from datetime import datetime
@@ -19,6 +20,10 @@ SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 @app.get("/", response_class=HTMLResponse)
 async def read_form(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    return templates.TemplateResponse("dashboard.html", {"request": request})
 
 @app.get("/search", response_class=HTMLResponse)
 async def search_page(request: Request):
