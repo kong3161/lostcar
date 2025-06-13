@@ -161,3 +161,45 @@ async def search_results(
         "total_pages": total_pages,
         "base_url": base_url
     })
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    return templates.TemplateResponse("dashboard.html", {"request": request})
+
+@app.get("/dashboard-data")
+async def dashboard_data():
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+
+    async with httpx.AsyncClient() as client:
+        res = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=brand,model,time_reported", headers=headers)
+        data = res.json() if res.status_code == 200 else []
+
+    # Model count
+    model_stats = {}
+    time_ranges = {"00.01-08.00": 0, "08.01-16.00": 0, "16.01-24.00": 0}
+
+    for item in data:
+        model = item.get("model") or "ไม่ระบุรุ่น"
+        model_stats[model] = model_stats.get(model, 0) + 1
+
+        time_str = item.get("time_reported")
+        if time_str:
+            hour, minute, *_ = map(int, time_str.split(":"))
+            total_minutes = hour * 60 + minute
+            if total_minutes < 480:
+                time_ranges["00.01-08.00"] += 1
+            elif total_minutes <= 960:
+                time_ranges["08.01-16.00"] += 1
+            else:
+                time_ranges["16.01-24.00"] += 1
+
+    # Sort model by frequency
+    sorted_model_stats = dict(sorted(model_stats.items(), key=lambda x: x[1], reverse=True))
+
+    return {
+        "models": sorted_model_stats,
+        "time_ranges": time_ranges
+    }

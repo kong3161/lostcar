@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>แดชบอร์ดระบบค้นหารถหาย</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 960px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .chart-block {
+      margin-bottom: 3rem;
+    }
+    canvas {
+      background-color: #fff;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 แดชบอร์ดสถิติรถหาย</h1>
+
+    <div class="chart-block">
+      <h3>🚗 จำนวนรถที่หายตามรุ่น (Model)</h3>
+      <canvas id="barChart" height="120"></canvas>
+    </div>
+
+    <div class="chart-block">
+      <h3>🕒 ช่วงเวลาที่ได้รับแจ้งหาย</h3>
+      <canvas id="pieChart" height="120"></canvas>
+    </div>
+  </div>
+
+  <script>
+    async function fetchData() {
+      const res = await fetch("/dashboard-data");
+      return await res.json();
+    }
+
+    function renderBarChart(ctx, labels, data) {
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "จำนวนรถที่หาย",
+            data: data,
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function renderPieChart(ctx, labels, data) {
+      new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "แจ้งหายในช่วงเวลา",
+            data: data,
+            backgroundColor: ["#0074D9", "#2ECC40", "#FF851B"]
+          }]
+        },
+        options: {
+          responsive: true
+        }
+      });
+    }
+
+    fetchData().then(data => {
+      const modelStats = data.models;
+      const timeStats = data.time_ranges;
+
+      const modelLabels = Object.keys(modelStats);
+      const modelCounts = Object.values(modelStats);
+
+      const timeLabels = Object.keys(timeStats);
+      const timeCounts = Object.values(timeStats);
+
+      renderBarChart(document.getElementById("barChart"), modelLabels, modelCounts);
+      renderPieChart(document.getElementById("pieChart"), timeLabels, timeCounts);
+    });
+  </script>
+</body>
+</html>
