@@ -33,6 +33,13 @@
     </div>
   </div>
   <script>
+    Chart.register(ChartDataLabels);
+
+    const colorPalette = [
+      '#f87171', '#fb923c', '#facc15', '#4ade80',
+      '#60a5fa', '#a78bfa', '#f472b6', '#34d399'
+    ];
+
     async function fetchData() {
       const res = await fetch("/dashboard-data");
       return await res.json();
@@ -45,11 +52,9 @@
       const block = document.createElement("div");
       block.className = "chart-block";
 
-      // Remove previous canvas if exists
       const oldCanvas = document.getElementById(chartId);
       if (oldCanvas) oldCanvas.remove();
 
-      // Create new canvas
       const heading = document.createElement("h3");
       heading.textContent = `🚗 รุ่นที่หาย - ประเภท: ${typeName}`;
 
@@ -67,14 +72,9 @@
         data: {
           labels: labels,
           datasets: [{
-            backgroundColor: labels.map((_, i) => {
-              const colors = ['#f87171', '#fb923c', '#facc15', '#4ade80',
-                              '#60a5fa', '#a78bfa', '#f472b6', '#34d399'];
-              return colors[i % colors.length];
-            }),
-            label: "จำนวนรถที่หาย",
+            label: "",
             data: data,
-            backgroundColor: "rgba(54, 162, 235, 0.6)"
+            backgroundColor: labels.map((_, i) => colorPalette[i % colorPalette.length])
           }]
         },
         options: {
@@ -83,18 +83,14 @@
             legend: { display: false },
             datalabels: {
               anchor: 'end',
-              align: 'end',
-              offset: 6,
-              color: '#333',
-              font: { weight: 'bold', size: 12 },
-              formatter: value => Math.round(value)
-            },
-            datalabels: {
-              anchor: 'end',
-              align: 'end',
-              offset: 6,
-              color: '#333',
-              font: { weight: 'bold', size: 12 },
+              align: 'top',
+              offset: 4,
+              color: '#000',
+              clip: false,
+              font: {
+                weight: 'bold',
+                size: 12
+              },
               formatter: value => Math.round(value)
             }
           },
@@ -119,11 +115,6 @@
         data: {
           labels: labels,
           datasets: [{
-            backgroundColor: labels.map((_, i) => {
-              const colors = ['#f87171', '#fb923c', '#facc15', '#4ade80',
-                              '#60a5fa', '#a78bfa', '#f472b6', '#34d399'];
-              return colors[i % colors.length];
-            }),
             label: "แจ้งหายในช่วงเวลา",
             data: data,
             backgroundColor: ["#0074D9", "#2ECC40", "#FF851B"]
@@ -132,15 +123,6 @@
         options: {
           responsive: true,
           plugins: {
-            legend: { display: false },
-            datalabels: {
-              anchor: 'end',
-              align: 'end',
-              offset: 6,
-              color: '#333',
-              font: { weight: 'bold', size: 12 },
-              formatter: value => Math.round(value)
-            },
             datalabels: {
               color: '#000',
               font: { weight: 'bold', size: 12 },
