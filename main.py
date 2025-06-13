@@ -7,6 +7,7 @@ import os
 import httpx
 from datetime import datetime
 from urllib.parse import urlencode
+from math import ceil
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -26,6 +27,7 @@ async def search_page(request: Request):
 @app.get("/results", response_class=HTMLResponse)
 async def show_results(
     request: Request,
+    page: int = 1,
     vehicle_type: str = "",
     brand: str = "",
     model: str = "",
@@ -36,28 +38,33 @@ async def show_results(
     engine_number: str = "",
     chassis_number: str = ""
 ):
-    params = []
-    if vehicle_type:
-        params.append(f"vehicle_type=eq.{vehicle_type}")
-    if brand:
-        params.append(f"brand=ilike.*{brand}*")
-    if model:
-        params.append(f"model=ilike.*{model}*")
-    if date_lost:
-        params.append(f"date_lost=eq.{date_lost}")
-    if reporter:
-        params.append(f"reporter=ilike.*{reporter}*")
-    if color:
-        params.append(f"color=ilike.*{color}*")
-    if plate_number:
-        params.append(f"plate_number=ilike.*{plate_number}*")
-    if engine_number:
-        params.append(f"engine_number=ilike.*{engine_number}*")
-    if chassis_number:
-        params.append(f"chassis_number=ilike.*{chassis_number}*")
+    limit = 5
+    offset = (page - 1) * limit
 
-    filter_query = "&".join(params)
-    query_url = f"{SUPABASE_URL}/rest/v1/reports?{filter_query}&order=uploaded_at.desc" if filter_query else f"{SUPABASE_URL}/rest/v1/reports?order=uploaded_at.desc"
+    filter_parts = []
+    if vehicle_type:
+        filter_parts.append(f"vehicle_type=eq.{vehicle_type}")
+    if brand:
+        filter_parts.append(f"brand=ilike.*{brand}*")
+    if model:
+        filter_parts.append(f"model=ilike.*{model}*")
+    if date_lost:
+        filter_parts.append(f"date_lost=eq.{date_lost}")
+    if reporter:
+        filter_parts.append(f"reporter=ilike.*{reporter}*")
+    if color:
+        filter_parts.append(f"color=ilike.*{color}*")
+    if plate_number:
+        filter_parts.append(f"plate_number=ilike.*{plate_number}*")
+    if engine_number:
+        filter_parts.append(f"engine_number=ilike.*{engine_number}*")
+    if chassis_number:
+        filter_parts.append(f"chassis_number=ilike.*{chassis_number}*")
+
+    filter_query = "&".join(filter_parts)
+    base_url = f"{SUPABASE_URL}/rest/v1/reports"
+    url = f"{base_url}?{filter_query}&order=uploaded_at.desc&limit={limit}&offset={offset}" if filter_query else f"{base_url}?order=uploaded_at.desc&limit={limit}&offset={offset}"
+    count_url = f"{base_url}?select=id&{filter_query}" if filter_query else f"{base_url}?select=id"
 
     headers = {
         "apikey": SUPABASE_KEY,
@@ -65,134 +72,19 @@ async def show_results(
     }
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(query_url, headers=headers)
+        response = await client.get(url, headers=headers)
+        count_response = await client.get(count_url, headers={**headers, "Prefer": "count=exact"})
+
     items = response.json() if response.status_code == 200 else []
+    total = len(count_response.json()) if count_response.status_code == 200 else 0
+    total_pages = ceil(total / limit) if total > 0 else 1
 
     return templates.TemplateResponse("results.html", {
         "request": request,
         "items": items,
-        "debug_url": query_url,
+        "debug_url": url,
         "debug_status": response.status_code,
-        "debug_raw": response.text
+        "debug_raw": response.text,
+        "page": page,
+        "total_pages": total_pages
     })
-
-@app.post("/submit", response_class=HTMLResponse)
-async def handle_form(
-    request: Request,
-    vehicle_type: str = Form(...),
-    brand: str = Form(...),
-    model: str = Form(...),
-    color: str = Form(""),
-    plate_prefix: str = Form(""),
-    plate_number: str = Form(""),
-    plate_province: str = Form(""),
-    engine_number: str = Form(""),
-    chassis_number: str = Form(""),
-    date_lost: str = Form(...),
-    time_event: str = Form(...),
-    time_reported: str = Form(...),
-    location: str = Form(...),
-    lat: str = Form(...),
-    lng: str = Form(...),
-    reporter: str = Form(...),
-    details: str = Form(...),
-    files: list[UploadFile] = File(None)
-):
-    uploaded_at = datetime.utcnow().isoformat()
-    data = {
-        "vehicle_type": vehicle_type,
-        "brand": brand,
-        "model": model,
-        "color": color,
-        "plate_prefix": plate_prefix,
-        "plate_number": plate_number,
-        "plate_province": plate_province,
-        "engine_number": engine_number,
-        "chassis_number": chassis_number,
-        "date_lost": date_lost,
-        "time_event": time_event,
-        "time_reported": time_reported,
-        "location": location,
-        "lat": lat,
-        "lng": lng,
-        "reporter": reporter,
-        "details": details,
-        "uploaded_at": uploaded_at
-    }
-
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            f"{SUPABASE_URL}/rest/v1/reports",
-            json=data,
-            headers=headers
-        )
-
-    if response.status_code in [200, 201]:
-        message = "ส่งข้อมูลเรียบร้อยแล้ว ✅"
-    else:
-        message = f"เกิดข้อผิดพลาด: {response.status_code} - {response.text}"
-
-    return templates.TemplateResponse("submitted.html", {
-        "request": request,
-        "brand": brand,
-        "model": model,
-        "message": message
-    })
-
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
-
-@app.get("/dashboard-data")
-async def dashboard_data():
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
-
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported", headers=headers)
-
-    if resp.status_code != 200:
-        return JSONResponse(status_code=resp.status_code, content={"error": "Failed to fetch data"})
-
-    rows = resp.json()
-    models_by_type = {}
-    time_ranges = {
-        "00.01-08.00 น.": 0,
-        "08.01-16.00 น.": 0,
-        "16.01-24.00 น.": 0
-    }
-
-    for row in rows:
-        vtype = row.get("vehicle_type") or "ไม่ระบุ"
-        model = (row.get("model") or "ไม่ระบุ").strip().upper()
-
-        if vtype not in models_by_type:
-            models_by_type[vtype] = {}
-
-        models_by_type[vtype][model] = models_by_type[vtype].get(model, 0) + 1
-
-        time_str = row.get("time_reported")
-        if time_str:
-            try:
-                h, m, *_ = map(int, time_str.split(":"))
-                if 0 <= h <= 8:
-                    time_ranges["00.01-08.00 น."] += 1
-                elif 8 < h <= 16:
-                    time_ranges["08.01-16.00 น."] += 1
-                else:
-                    time_ranges["16.01-24.00 น."] += 1
-            except:
-                pass
-
-    return {
-        "models_by_type": models_by_type,
-        "time_ranges": time_ranges
-    }
