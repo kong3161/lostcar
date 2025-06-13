@@ -18,6 +18,7 @@ async def search_form(request: Request):
 
 @router.get("/results", response_class=HTMLResponse)
 async def search_results(request: Request,
+                         vehicle_type: str = "",
                          brand: str = "",
                          model: str = "",
                          plate_number: str = "",
@@ -26,6 +27,8 @@ async def search_results(request: Request,
 
     or_conditions = []
 
+    if vehicle_type:
+        or_conditions.append(f"vehicle_type.eq.{vehicle_type}")
     if brand:
         or_conditions.append(f"brand.ilike.*{brand}*")
     if model:
