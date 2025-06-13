@@ -66,10 +66,13 @@ async def handle_form(
             headers=headers
         )
 
-    if response.status_code in [200, 201]:
+    try:
+        response.raise_for_status()
         message = "ส่งข้อมูลเรียบร้อยแล้ว ✅"
-    else:
-        message = f"เกิดข้อผิดพลาด: {response.status_code} - {response.text}"
+    except httpx.HTTPStatusError:
+        message = f"❗ เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase:\\n" \\
+                  f"Status: {response.status_code}\\n" \\
+                  f"Details: {response.text}"
 
     return templates.TemplateResponse("submitted.html", {
         "request": request,
