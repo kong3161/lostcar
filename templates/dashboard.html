@@ -38,7 +38,8 @@
     }
 
     function createModelChart(container, typeName, labels, data) {
-      const chartId = `bar-${typeName.replace(/[^a-zA-Z0-9]/g, '')}`;
+      const safeName = typeName.replace(/[^a-zA-Z0-9]/g, '') || `type${Math.random().toString(36).substr(2, 5)}`;
+      const chartId = `bar-${safeName}`;
       const block = document.createElement("div");
       block.className = "chart-block";
       block.innerHTML = `
