@@ -1,5 +1,5 @@
 
-from fastapi import FastAPI, Form, UploadFile, File, Request, APIRouter
+from fastapi import FastAPI, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -22,6 +22,59 @@ async def read_form(request: Request):
 @app.get("/search", response_class=HTMLResponse)
 async def search_page(request: Request):
     return templates.TemplateResponse("search.html", {"request": request})
+
+@app.get("/results", response_class=HTMLResponse)
+async def show_results(
+    request: Request,
+    vehicle_type: str = "",
+    brand: str = "",
+    model: str = "",
+    date_lost: str = "",
+    reporter: str = "",
+    color: str = "",
+    plate_number: str = "",
+    engine_number: str = "",
+    chassis_number: str = ""
+):
+    params = []
+    if vehicle_type:
+        params.append(f"vehicle_type=eq.{vehicle_type}")
+    if brand:
+        params.append(f"brand=ilike.*{brand}*")
+    if model:
+        params.append(f"model=ilike.*{model}*")
+    if date_lost:
+        params.append(f"date_lost=eq.{date_lost}")
+    if reporter:
+        params.append(f"reporter=ilike.*{reporter}*")
+    if color:
+        params.append(f"color=ilike.*{color}*")
+    if plate_number:
+        params.append(f"plate_number=ilike.*{plate_number}*")
+    if engine_number:
+        params.append(f"engine_number=ilike.*{engine_number}*")
+    if chassis_number:
+        params.append(f"chassis_number=ilike.*{chassis_number}*")
+
+    filter_query = "&".join(params)
+    query_url = f"{SUPABASE_URL}/rest/v1/reports?{filter_query}&order=uploaded_at.desc" if filter_query else f"{SUPABASE_URL}/rest/v1/reports?order=uploaded_at.desc"
+
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(query_url, headers=headers)
+    items = response.json() if response.status_code == 200 else []
+
+    return templates.TemplateResponse("results.html", {
+        "request": request,
+        "items": items,
+        "debug_url": query_url,
+        "debug_status": response.status_code,
+        "debug_raw": response.text
+    })
 
 @app.post("/submit", response_class=HTMLResponse)
 async def handle_form(
@@ -91,6 +144,10 @@ async def handle_form(
         "model": model,
         "message": message
     })
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    return templates.TemplateResponse("dashboard.html", {"request": request})
 
 @app.get("/dashboard-data")
 async def dashboard_data():
