@@ -6,7 +6,7 @@
   <title>แดชบอร์ดระบบค้นหารถหาย</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
     body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f8; margin: 0; padding: 2rem; }
     .container { max-width: 960px; margin: auto; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 0 12px rgba(0,0,0,0.1); }
@@ -39,18 +39,30 @@
     }
 
     function createModelChart(container, typeName, labels, data) {
-      const chartId = `bar-${typeName.replace(/[^a-zA-Z0-9]/g, '')}`;
+      const safeName = typeName.replace(/[^a-zA-Z0-9]/g, '') || `t${Math.random().toString(36).substring(2, 6)}`;
+      const chartId = `bar-${safeName}`;
+
       const block = document.createElement("div");
       block.className = "chart-block";
-      block.innerHTML = `
-        <h3>🚗 รุ่นที่หาย - ประเภท: ${typeName}</h3>
-        <canvas id="${chartId}" height="100"></canvas>
-      `;
+
+      // Remove previous canvas if exists
+      const oldCanvas = document.getElementById(chartId);
+      if (oldCanvas) oldCanvas.remove();
+
+      // Create new canvas
+      const heading = document.createElement("h3");
+      heading.textContent = `🚗 รุ่นที่หาย - ประเภท: ${typeName}`;
+
+      const canvas = document.createElement("canvas");
+      canvas.id = chartId;
+      canvas.height = 100;
+
+      block.appendChild(heading);
+      block.appendChild(canvas);
       container.appendChild(block);
 
       const ctx = document.getElementById(chartId);
       new Chart(ctx, {
-    plugins: [ChartDataLabels],
         type: "bar",
         data: {
           labels: labels,
@@ -61,48 +73,34 @@
           }]
         },
         options: {
-    plugins: {
-      datalabels: {
-        anchor: 'end',
-        align: 'end',
-        offset: 6,
-        color: '#333',
-        font: {
-          weight: 'bold',
-          size: 12
-        },
-        formatter: function(value) {
-          return Math.round(value);
-        }
-      },
-      datalabels: {
-        anchor: 'end',
-        align: 'top',
-        color: '#000',
-        font: { weight: 'bold' },
-        formatter: function(value) { return Math.round(value); }
-      }
-    },
           responsive: true,
+          plugins: {
+            datalabels: {
+              anchor: 'end',
+              align: 'end',
+              offset: 6,
+              color: '#333',
+              font: { weight: 'bold', size: 12 },
+              formatter: value => Math.round(value)
+            }
+          },
           scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            stepSize: 1,
-            precision: 0,
-            callback: function(value) {
-              return Number(value).toFixed(0);
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+                precision: 0,
+                callback: value => Number(value).toFixed(0)
+              }
             }
           }
-        }
-      }
-        }
+        },
+        plugins: [ChartDataLabels]
       });
     }
 
     function renderPieChart(ctx, labels, data) {
       new Chart(ctx, {
-    plugins: [ChartDataLabels],
         type: "pie",
         data: {
           labels: labels,
@@ -113,30 +111,20 @@
           }]
         },
         options: {
-    plugins: {
-      datalabels: {
-        anchor: 'end',
-        align: 'end',
-        offset: 6,
-        color: '#333',
-        font: {
-          weight: 'bold',
-          size: 12
+          responsive: true,
+          plugins: {
+            datalabels: {
+              color: '#000',
+              font: { weight: 'bold', size: 12 },
+              formatter: (value, ctx) => {
+                const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                const percent = ((value / total) * 100).toFixed(1);
+                return `${value} คัน\n(${percent}%)`;
+              }
+            }
+          }
         },
-        formatter: function(value) {
-          return Math.round(value);
-        }
-      },
-      datalabels: {
-        anchor: 'end',
-        align: 'top',
-        color: '#000',
-        font: { weight: 'bold' },
-        formatter: function(value) { return Math.round(value); }
-      }
-    },
-          responsive: true
-        }
+        plugins: [ChartDataLabels]
       });
     }
 
