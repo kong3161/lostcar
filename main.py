@@ -138,8 +138,16 @@ async def search_results(
         res_data = await client.get(f"{SUPABASE_URL}/rest/v1/reports?{query}", headers=headers)
         results = res_data.json() if res_data.status_code == 200 else []
 
-        res_count = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=id&{query.split('&')[0]}", headers={**headers, "Range": "0-99999"})
-        total = int(res_count.headers.get("Content-Range", "0/0").split("/")[-1])
+        count_query = f"{SUPABASE_URL}/rest/v1/reports?select=id"
+        if or_conditions:
+            count_query += f"&or=({','.join(or_conditions)})"
+        res_count = await client.get(count_query, headers={**headers, "Range": "0-99999"})
+
+        content_range = res_count.headers.get("Content-Range", "0/0")
+        try:
+            total = int(content_range.split("/")[-1])
+        except:
+            total = 0
         total_pages = max((total + PAGE_SIZE - 1) // PAGE_SIZE, 1)
 
     base_params = request.query_params.multi_items()
