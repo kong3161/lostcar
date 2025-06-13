@@ -34,10 +34,8 @@ async def handle_form(
     details: str = Form(...),
     files: list[UploadFile] = File(None)
 ):
-    # Format datetime for timestamp field
     uploaded_at = datetime.utcnow().isoformat()
 
-    # Prepare data for Supabase
     data = {
         "vehicle_type": vehicle_type,
         "brand": brand,
@@ -70,9 +68,13 @@ async def handle_form(
         response.raise_for_status()
         message = "ส่งข้อมูลเรียบร้อยแล้ว ✅"
     except httpx.HTTPStatusError:
-        message = f"❗ เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase:\\n" \\
-                  f"Status: {response.status_code}\\n" \\
-                  f"Details: {response.text}"
+        message = (
+            f"❗ เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase:
+"
+            f"Status: {response.status_code}
+"
+            f"Details: {response.text}"
+        )
 
     return templates.TemplateResponse("submitted.html", {
         "request": request,
