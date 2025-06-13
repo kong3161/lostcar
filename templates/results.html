@@ -121,12 +121,14 @@
         <a href="/search">🔙 กลับไปหน้าค้นหา</a>
     </div>
 
+    {% if request.query_params.get('debug') == 'true' %}
     <div class="debug">
         <strong>🔎 Debug</strong><br>
         URL: {{ debug_url }}<br>
         Status: {{ debug_status }}<br>
         Response: {{ debug_raw }}
     </div>
+    {% endif %}
 </div>
 
 </body>
