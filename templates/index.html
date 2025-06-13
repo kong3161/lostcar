@@ -2,43 +2,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>แจ้งรถหาย</title>
+    <title>ระบบจัดเก็บข้อมูลรถหาย</title>
 </head>
-<body>
-    <h2>📋 แบบฟอร์มแจ้งรถหาย</h2>
+<body style="font-family: sans-serif; max-width: 720px; margin: auto; padding: 20px;">
+
+    <div style="text-align: center;">
+        <img src="/static/ภจว-ปทุม.png" alt="โลโก้ตำรวจภูธรจังหวัดปทุมธานี" width="150"><br><br>
+        <h2>🚔 ระบบจัดเก็บข้อมูลรถหาย<br>พื้นที่ สภ.ประตูน้ำจุฬาลงกรณ์</h2>
+        <p style="font-size: 0.9em; color: gray; margin-top: -10px;">
+            รุ่น 0.1 ทดลองใช้ : พัฒนาโดยงานป้องกันปราบปราม<br>
+            สภ.ประตูน้ำจุฬาลงกรณ์ ภ.จว.ปทุมธานี
+        </p>
+    </div>
+
+    <hr><br>
+
     <form method="post" action="/submit" enctype="multipart/form-data">
+        <label>ประเภทรถ:</label>
+        <select name="vehicle_type">
+            <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
+            <option value="รถยนต์">รถยนต์</option>
+            <option value="อื่น ๆ">อื่น ๆ</option>
+        </select><br><br>
 
-        <fieldset>
-            <legend><strong>🚗 รายละเอียดเกี่ยวกับรถ</strong></legend>
+        <label>ยี่ห้อ (ภาษาอังกฤษ):</label>
+        <input type="text" name="brand" required><br><br>
 
-            <label>ประเภทรถ:</label>
-            <select name="vehicle_type">
-                <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
-                <option value="รถยนต์">รถยนต์</option>
-                <option value="อื่น ๆ">อื่น ๆ</option>
-            </select><br><br>
+        <label>รุ่น (ภาษาอังกฤษ):</label>
+        <input type="text" name="model" required><br><br>
 
-            <label>ยี่ห้อ (ภาษาอังกฤษ):</label>
-            <input type="text" name="brand" required><br><br>
+        <label>สีรถ:</label>
+        <input type="text" name="color"><br><br>
 
-            <label>รุ่น (ภาษาอังกฤษ):</label>
-            <input type="text" name="model" required><br><br>
+        <label>หมายเลขทะเบียน:</label>
+        <input type="text" name="plate_prefix" placeholder="หมวดอักษร" size="6">
+        <input type="text" name="plate_number" placeholder="เลขทะเบียน" size="10">
+        <input type="text" name="plate_province" placeholder="จังหวัด" size="10"><br><br>
 
-            <label>สีรถ:</label>
-            <input type="text" name="color"><br><br>
+        <label>เลขเครื่อง:</label>
+        <input type="text" name="engine_number"><br><br>
 
-            <label>หมายเลขทะเบียน:</label>
-            <input type="text" name="plate_prefix" placeholder="หมวดอักษร" size="6">
-            <input type="text" name="plate_number" placeholder="เลขทะเบียน" size="10">
-            <input type="text" name="plate_province" placeholder="จังหวัด" size="10"><br><br>
-
-            <label>เลขเครื่อง:</label>
-            <input type="text" name="engine_number"><br><br>
-
-            <label>เลขตัวรถ:</label>
-            <input type="text" name="chassis_number"><br><br>
-        </fieldset>
-        <br>
+        <label>เลขตัวรถ:</label>
+        <input type="text" name="chassis_number"><br><br>
 
         <label>วันที่หาย:</label>
         <input type="date" name="date_lost" required><br><br>
@@ -72,5 +77,6 @@
 
     <hr>
     <a href="/search">🔍 ไปที่หน้าค้นหา</a>
+
 </body>
 </html>
