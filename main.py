@@ -106,3 +106,5 @@ async def handle_form(
         "model": model,
         "message": message
     })
+from search_router import router as search_router
+app.include_router(search_router)
