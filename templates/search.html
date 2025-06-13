@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ค้นหารถหาย</title>
+</head>
+<body>
+    <h2>🔍 ค้นหาข้อมูลรถหาย</h2>
+    <form action="/results" method="get">
+        <label>ประเภทรถ:</label>
+        <input type="text" name="vehicle_type"><br><br>
+        <label>ยี่ห้อ:</label>
+        <input type="text" name="brand"><br><br>
+        <label>รุ่น:</label>
+        <input type="text" name="model"><br><br>
+        <label>วันที่หาย (YYYY-MM-DD):</label>
+        <input type="text" name="date_lost"><br><br>
+        <label>ชื่อผู้แจ้ง:</label>
+        <input type="text" name="reporter"><br><br>
+        <button type="submit">ค้นหา</button>
+    </form>
+</body>
+</html>

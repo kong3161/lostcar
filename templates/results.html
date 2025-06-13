@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ผลการค้นหา</title>
+</head>
+<body>
+    <h2>📋 ผลการค้นหา</h2>
+    {% if results %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ประเภท</th>
+                <th>ยี่ห้อ</th>
+                <th>รุ่น</th>
+                <th>วันที่หาย</th>
+                <th>สถานที่</th>
+                <th>ผู้แจ้ง</th>
+                <th>Map</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr>
+                <td>{{ r.vehicle_type }}</td>
+                <td>{{ r.brand }}</td>
+                <td>{{ r.model }}</td>
+                <td>{{ r.date_lost }}</td>
+                <td>{{ r.location }}</td>
+                <td>{{ r.reporter }}</td>
+                <td>
+                    {% if r.lat and r.lng %}
+                    <a href="https://www.google.com/maps?q={{ r.lat }},{{ r.lng }}" target="_blank">ดูแผนที่</a>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>ไม่พบข้อมูลที่ตรงกับเงื่อนไข</p>
+    {% endif %}
+    <br>
+    <a href="/search">🔙 กลับไปค้นหา</a>
+</body>
+</html>
