@@ -36,15 +36,17 @@
       const res = await fetch("/dashboard-data");
       return await res.json();
     }
+
     function createModelChart(container, typeName, labels, data) {
       const chartId = `bar-${typeName.replace(/[^a-zA-Z0-9]/g, '')}`;
       const block = document.createElement("div");
       block.className = "chart-block";
-      block.innerHTML = \`
-        <h3>🚗 รุ่นที่หาย - ประเภท: \${typeName}</h3>
-        <canvas id="\${chartId}" height="100"></canvas>
-      \`;
+      block.innerHTML = `
+        <h3>🚗 รุ่นที่หาย - ประเภท: ${typeName}</h3>
+        <canvas id="${chartId}" height="100"></canvas>
+      `;
       container.appendChild(block);
+
       const ctx = document.getElementById(chartId);
       new Chart(ctx, {
         type: "bar",
@@ -53,7 +55,7 @@
           datasets: [{
             label: "จำนวนรถที่หาย",
             data: data,
-            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            backgroundColor: "rgba(54, 162, 235, 0.6)"
           }]
         },
         options: {
@@ -62,6 +64,7 @@
         }
       });
     }
+
     function renderPieChart(ctx, labels, data) {
       new Chart(ctx, {
         type: "pie",
@@ -73,18 +76,23 @@
             backgroundColor: ["#0074D9", "#2ECC40", "#FF851B"]
           }]
         },
-        options: { responsive: true }
+        options: {
+          responsive: true
+        }
       });
     }
+
     fetchData().then(data => {
       const container = document.getElementById("model-charts");
       const modelsByType = data.models_by_type;
       const timeStats = data.time_ranges;
+
       for (const [typeName, models] of Object.entries(modelsByType)) {
         const labels = Object.keys(models);
         const values = Object.values(models);
         createModelChart(container, typeName, labels, values);
       }
+
       const timeLabels = Object.keys(timeStats);
       const timeCounts = Object.values(timeStats);
       renderPieChart(document.getElementById("pieChart"), timeLabels, timeCounts);
