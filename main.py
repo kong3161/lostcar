@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 import os
 import httpx
 from datetime import datetime
+from urllib.parse import urlencode
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
@@ -40,19 +41,6 @@ async def handle_form(
     details: str = Form(...),
     files: list[UploadFile] = File(None)
 ):
-    try:
-        date_lost = datetime.strptime(date_lost, "%Y-%m-%d").date().isoformat()
-    except Exception:
-        date_lost = None
-    try:
-        time_event = datetime.strptime(time_event, "%H:%M").time().isoformat()
-    except Exception:
-        time_event = None
-    try:
-        time_reported = datetime.strptime(time_reported, "%H:%M").time().isoformat()
-    except Exception:
-        time_reported = None
-
     uploaded_at = datetime.utcnow().isoformat()
 
     data = {
@@ -89,16 +77,7 @@ async def handle_form(
             headers=headers
         )
 
-    try:
-        response.raise_for_status()
-        message = "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
-    except httpx.HTTPStatusError:
-        message = (
-            f"❗ Supabase error:<br>"
-            f"<b>Status:</b> {response.status_code}<br>"
-            f"<b>Response:</b> {response.text}<br>"
-            f"<b>Sent data:</b> {data}"
-        )
+    message = "ส่งข้อมูลเรียบร้อยแล้ว ✅" if response.status_code in [200, 201] else f"เกิดข้อผิดพลาด: {response.status_code} - {response.text}"
 
     return templates.TemplateResponse("submitted.html", {
         "request": request,
@@ -106,5 +85,71 @@ async def handle_form(
         "model": model,
         "message": message
     })
-from search_router import router as search_router
-app.include_router(search_router)
+
+@app.get("/search", response_class=HTMLResponse)
+async def search_form(request: Request):
+    return templates.TemplateResponse("search.html", {"request": request})
+
+@app.get("/results", response_class=HTMLResponse)
+async def search_results(
+    request: Request,
+    vehicle_type: str = "",
+    brand: str = "",
+    model: str = "",
+    date_lost: str = "",
+    reporter: str = "",
+    color: str = "",
+    plate_number: str = "",
+    engine_number: str = "",
+    chassis_number: str = "",
+    page: int = 1
+):
+    PAGE_SIZE = 5
+    offset = (page - 1) * PAGE_SIZE
+
+    or_conditions = []
+    if vehicle_type:
+        or_conditions.append(f"vehicle_type.eq.{vehicle_type}")
+    if brand:
+        or_conditions.append(f"brand.ilike.*{brand}*")
+    if model:
+        or_conditions.append(f"model.ilike.*{model}*")
+    if date_lost:
+        or_conditions.append(f"date_lost.eq.{date_lost}")
+    if reporter:
+        or_conditions.append(f"reporter.ilike.*{reporter}*")
+    if color:
+        or_conditions.append(f"color.ilike.*{color}*")
+    if plate_number:
+        or_conditions.append(f"plate_number.ilike.*{plate_number}*")
+    if engine_number:
+        or_conditions.append(f"engine_number.ilike.*{engine_number}*")
+    if chassis_number:
+        or_conditions.append(f"chassis_number.ilike.*{chassis_number}*")
+
+    query = f"or=({','.join(or_conditions)})&order=uploaded_at.desc&limit={PAGE_SIZE}&offset={offset}" if or_conditions else f"order=uploaded_at.desc&limit={PAGE_SIZE}&offset={offset}"
+
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+
+    async with httpx.AsyncClient() as client:
+        res_data = await client.get(f"{SUPABASE_URL}/rest/v1/reports?{query}", headers=headers)
+        results = res_data.json() if res_data.status_code == 200 else []
+
+        res_count = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=id&{query.split('&')[0]}", headers={**headers, "Range": "0-99999"})
+        total = int(res_count.headers.get("Content-Range", "0/0").split("/")[-1])
+        total_pages = max((total + PAGE_SIZE - 1) // PAGE_SIZE, 1)
+
+    base_params = request.query_params.multi_items()
+    base_params = [(k, v) for k, v in base_params if k != "page"]
+    base_url = "/results?" + urlencode(base_params)
+
+    return templates.TemplateResponse("results.html", {
+        "request": request,
+        "results": results,
+        "page": page,
+        "total_pages": total_pages,
+        "base_url": base_url
+    })

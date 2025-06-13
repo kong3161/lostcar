@@ -12,7 +12,6 @@
             margin: 0;
             padding: 0;
         }
-
         .container {
             max-width: 960px;
             margin: auto;
@@ -22,54 +21,47 @@
             border-radius: 12px;
             margin-top: 2rem;
         }
-
         h1 {
             text-align: center;
             color: #2c3e50;
             font-size: 1.8rem;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1.5rem;
-        }
-
-        th, td {
-            padding: 10px;
+        .card {
             border: 1px solid #ccc;
-            font-size: 0.95rem;
-            text-align: left;
-            vertical-align: top;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
         }
-
-        th {
-            background-color: #f0f0f0;
+        .card iframe {
+            margin-top: 10px;
+            width: 100%;
+            height: 300px;
+            border-radius: 8px;
         }
-
         .no-results {
             text-align: center;
             color: gray;
             margin-top: 2rem;
         }
-
-        .back-link {
+        .pagination {
             text-align: center;
             margin-top: 2rem;
         }
-
-        .debug {
-            font-size: 0.8rem;
-            color: gray;
-            margin-top: 2rem;
-            background-color: #f9f9f9;
-            padding: 1rem;
-            border-radius: 8px;
+        .pagination a {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0 0.2rem;
+            background-color: #2c3e50;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
         }
-
-        iframe {
-            margin-top: 10px;
-            border-radius: 8px;
+        .pagination a.active {
+            background-color: #1a242f;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
         }
     </style>
 </head>
@@ -79,40 +71,36 @@
     <h1>📋 ผลการค้นหาข้อมูลรถหาย</h1>
 
     {% if results %}
-        <table>
-            <thead>
-                <tr>
-                    <th>ข้อมูล</th>
-                    <th>รายละเอียด</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in results %}
-                <tr>
-                    <td>
-                        <strong>ประเภทรถ:</strong> {{ item.vehicle_type or '-' }}<br>
-                        <strong>ยี่ห้อ:</strong> {{ item.brand or '-' }}<br>
-                        <strong>รุ่น:</strong> {{ item.model or '-' }}<br>
-                        <strong>ทะเบียน:</strong> {{ item.plate_prefix or '' }} {{ item.plate_number or '' }} {{ item.plate_province or '' }}<br>
-                        <strong>สี:</strong> {{ item.color or '-' }}<br>
-                        <strong>ผู้แจ้ง:</strong> {{ item.reporter or '-' }}<br>
-                        <strong>วันที่หาย:</strong> {{ item.date_lost or '-' }}<br>
-                        <strong>พฤติการณ์:</strong> {{ item.details or '-' }}<br>
-                        <strong>สถานที่:</strong> {{ item.location or '-' }}
-                    </td>
-                    <td>
-                        {% if item.lat and item.lng %}
-                            <iframe width="100%" height="300" frameborder="0"
-                            src="https://maps.google.com/maps?q={{ item.lat }},{{ item.lng }}&hl=th&z=16&output=embed">
-                            </iframe>
-                        {% else %}
-                            ไม่มีพิกัด
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% for item in results %}
+        <div class="card">
+            <strong>ประเภทรถ:</strong> {{ item.vehicle_type or '-' }}<br>
+            <strong>ยี่ห้อ:</strong> {{ item.brand or '-' }}<br>
+            <strong>รุ่น:</strong> {{ item.model or '-' }}<br>
+            <strong>ทะเบียน:</strong> {{ item.plate_prefix or '' }} {{ item.plate_number or '' }} {{ item.plate_province or '' }}<br>
+            <strong>สี:</strong> {{ item.color or '-' }}<br>
+            <strong>ผู้แจ้ง:</strong> {{ item.reporter or '-' }}<br>
+            <strong>วันที่หาย:</strong> {{ item.date_lost or '-' }}<br>
+            <strong>พฤติการณ์:</strong> {{ item.details or '-' }}<br>
+            <strong>สถานที่:</strong> {{ item.location or '-' }}<br>
+            {% if item.lat and item.lng %}
+            <iframe frameborder="0"
+            src="https://maps.google.com/maps?q={{ item.lat }},{{ item.lng }}&hl=th&z=16&output=embed">
+            </iframe>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ base_url }}&page={{ page - 1 }}">« ย้อนกลับ</a>
+            {% endif %}
+            {% for p in range(1, total_pages + 1) %}
+                <a href="{{ base_url }}&page={{ p }}" class="{{ 'active' if p == page else '' }}">{{ p }}</a>
+            {% endfor %}
+            {% if page < total_pages %}
+                <a href="{{ base_url }}&page={{ page + 1 }}">หน้าถัดไป »</a>
+            {% endif %}
+        </div>
     {% else %}
         <div class="no-results">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div>
     {% endif %}
@@ -120,15 +108,6 @@
     <div class="back-link">
         <a href="/search">🔙 กลับไปหน้าค้นหา</a>
     </div>
-
-    {% if request.query_params.get('debug') == 'true' %}
-    <div class="debug">
-        <strong>🔎 Debug</strong><br>
-        URL: {{ debug_url }}<br>
-        Status: {{ debug_status }}<br>
-        Response: {{ debug_raw }}
-    </div>
-    {% endif %}
 </div>
 
 </body>
