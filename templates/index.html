@@ -56,18 +56,20 @@
             resize: vertical;
         }
 
-        button {
+        .button {
+            display: inline-block;
             background-color: #2c3e50;
             color: white;
-            padding: 12px 20px;
-            font-size: 1rem;
-            border: none;
+            padding: 10px 16px;
+            text-decoration: none;
             border-radius: 8px;
+            margin: 10px 5px 0 0;
+            font-size: 1rem;
             cursor: pointer;
-            margin-top: 20px;
+            text-align: center;
         }
 
-        button:hover {
+        .button:hover {
             background-color: #1a242f;
         }
 
@@ -84,9 +86,9 @@
             margin-bottom: 1rem;
         }
 
-        .back-link {
+        .link-group {
             text-align: center;
-            margin-top: 1.5rem;
+            margin-top: 2rem;
         }
     </style>
 </head>
@@ -157,11 +159,19 @@
             <label>อัปโหลดเอกสาร (JPG, PDF ได้หลายไฟล์):</label>
             <input type="file" name="files" multiple>
 
-            <button type="submit">ส่งข้อมูล</button>
+            <div style="text-align:center;">
+                <button class="button" type="submit">📨 ส่งข้อมูล</button>
+            </div>
         </form>
 
-        <div class="back-link">
-            <a href="/search">🔍 ไปที่หน้าค้นหา</a>
+        <div class="link-group">
+            <a href="/search" class="button">🔍 ไปที่หน้าค้นหา</a>
+            <a href="/dashboard" class="button">📊 ดูแดชบอร์ด</a>
+        </div>
+
+        <div class="footer">
+            ทดลองใช้ : พัฒนาโดยธุรการงานป้องกันปราบปราม<br>
+            สภ.ประตูน้ำจุฬาลงกรณ์ ภ.จว.ปทุมธานี
         </div>
     </div>
 
