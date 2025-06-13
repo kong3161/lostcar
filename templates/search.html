@@ -8,15 +8,37 @@
     <h2>🔍 ค้นหาข้อมูลรถหาย</h2>
     <form action="/results" method="get">
         <label>ประเภทรถ:</label>
-        <input type="text" name="vehicle_type"><br><br>
+        <select name="vehicle_type">
+            <option value="">-- เลือก --</option>
+            <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
+            <option value="รถยนต์">รถยนต์</option>
+            <option value="อื่น ๆ">อื่น ๆ</option>
+        </select><br><br>
+
         <label>ยี่ห้อ:</label>
         <input type="text" name="brand"><br><br>
+
         <label>รุ่น:</label>
         <input type="text" name="model"><br><br>
-        <label>วันที่หาย (YYYY-MM-DD):</label>
-        <input type="text" name="date_lost"><br><br>
+
+        <label>วันที่หาย:</label>
+        <input type="date" name="date_lost"><br><br>
+
         <label>ชื่อผู้แจ้ง:</label>
         <input type="text" name="reporter"><br><br>
+
+        <label>สีรถ:</label>
+        <input type="text" name="color"><br><br>
+
+        <label>เลขทะเบียน:</label>
+        <input type="text" name="plate_number"><br><br>
+
+        <label>เลขเครื่อง:</label>
+        <input type="text" name="engine_number"><br><br>
+
+        <label>เลขตัวรถ:</label>
+        <input type="text" name="chassis_number"><br><br>
+
         <button type="submit">ค้นหา</button>
     </form>
 </body>

@@ -7,18 +7,38 @@
 <body>
     <h2>📋 แบบฟอร์มแจ้งรถหาย</h2>
     <form method="post" action="/submit" enctype="multipart/form-data">
-        <label>ประเภทรถ:</label>
-        <select name="vehicle_type">
-            <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
-            <option value="รถยนต์">รถยนต์</option>
-            <option value="อื่น ๆ">อื่น ๆ</option>
-        </select><br><br>
 
-        <label>ยี่ห้อ (ภาษาอังกฤษ):</label>
-        <input type="text" name="brand" required><br><br>
+        <fieldset>
+            <legend><strong>🚗 รายละเอียดเกี่ยวกับรถ</strong></legend>
 
-        <label>รุ่น (ภาษาอังกฤษ):</label>
-        <input type="text" name="model" required><br><br>
+            <label>ประเภทรถ:</label>
+            <select name="vehicle_type">
+                <option value="รถจักรยานยนต์">รถจักรยานยนต์</option>
+                <option value="รถยนต์">รถยนต์</option>
+                <option value="อื่น ๆ">อื่น ๆ</option>
+            </select><br><br>
+
+            <label>ยี่ห้อ (ภาษาอังกฤษ):</label>
+            <input type="text" name="brand" required><br><br>
+
+            <label>รุ่น (ภาษาอังกฤษ):</label>
+            <input type="text" name="model" required><br><br>
+
+            <label>สีรถ:</label>
+            <input type="text" name="color"><br><br>
+
+            <label>หมายเลขทะเบียน:</label>
+            <input type="text" name="plate_prefix" placeholder="หมวดอักษร" size="6">
+            <input type="text" name="plate_number" placeholder="เลขทะเบียน" size="10">
+            <input type="text" name="plate_province" placeholder="จังหวัด" size="10"><br><br>
+
+            <label>เลขเครื่อง:</label>
+            <input type="text" name="engine_number"><br><br>
+
+            <label>เลขตัวรถ:</label>
+            <input type="text" name="chassis_number"><br><br>
+        </fieldset>
+        <br>
 
         <label>วันที่หาย:</label>
         <input type="date" name="date_lost" required><br><br>
@@ -29,8 +49,8 @@
         <label>เวลาทราบหาย:</label>
         <input type="time" name="time_reported" required><br><br>
 
-        <label>สถานที่หาย:</label>
-        <input type="text" name="location"><br><br>
+        <label>สถานที่หาย:</label><br>
+        <textarea name="location" rows="2" cols="60"></textarea><br><br>
 
         <label>ละติจูด:</label>
         <input type="text" name="lat"><br><br>
@@ -42,7 +62,7 @@
         <input type="text" name="reporter"><br><br>
 
         <label>พฤติการณ์:</label><br>
-        <textarea name="details" rows="4" cols="50"></textarea><br><br>
+        <textarea name="details" rows="4" cols="60"></textarea><br><br>
 
         <label>อัปโหลดเอกสาร (JPG, PDF ได้หลายไฟล์):</label>
         <input type="file" name="files" multiple><br><br>
