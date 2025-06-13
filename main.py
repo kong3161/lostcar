@@ -7,6 +7,7 @@ import os
 import httpx
 from datetime import datetime
 
+# Load Supabase credentials from environment
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
@@ -15,11 +16,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
-async def read_form(request: Request):
+async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/submit", response_class=HTMLResponse)
-async def handle_form(
+async def submit(
     request: Request,
     vehicle_type: str = Form(...),
     brand: str = Form(...),
@@ -36,7 +37,8 @@ async def handle_form(
 ):
     uploaded_at = datetime.utcnow().isoformat()
 
-    data = {
+    # Prepare data
+    payload = {
         "vehicle_type": vehicle_type,
         "brand": brand,
         "model": model,
@@ -60,13 +62,14 @@ async def handle_form(
     async with httpx.AsyncClient() as client:
         response = await client.post(
             f"{SUPABASE_URL}/rest/v1/reports",
-            json=data,
+            json=payload,
             headers=headers
         )
 
+    # Show detailed status
     try:
         response.raise_for_status()
-        message = "ส่งข้อมูลเรียบร้อยแล้ว ✅"
+        message = "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
     except httpx.HTTPStatusError:
         message = (
             f"❗ เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase:\n"
