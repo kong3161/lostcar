@@ -88,3 +88,6 @@ async def handle_form(
     )
 
     return HTMLResponse(content=message, status_code=200)
+
+from search_router import router as search_router
+app.include_router(search_router)
