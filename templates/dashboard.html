@@ -67,6 +67,11 @@
         data: {
           labels: labels,
           datasets: [{
+            backgroundColor: labels.map((_, i) => [
+              '#f87171','#fb923c','#facc15',
+              '#4ade80','#60a5fa','#a78bfa',
+              '#f472b6','#34d399'
+            ][i % 8]),
             label: "จำนวนรถที่หาย",
             data: data,
             backgroundColor: "rgba(54, 162, 235, 0.6)"
@@ -75,6 +80,7 @@
         options: {
           responsive: true,
           plugins: {
+            legend: { display: false },
             datalabels: {
               anchor: 'end',
               align: 'end',
@@ -105,6 +111,11 @@
         data: {
           labels: labels,
           datasets: [{
+            backgroundColor: labels.map((_, i) => [
+              '#f87171','#fb923c','#facc15',
+              '#4ade80','#60a5fa','#a78bfa',
+              '#f472b6','#34d399'
+            ][i % 8]),
             label: "แจ้งหายในช่วงเวลา",
             data: data,
             backgroundColor: ["#0074D9", "#2ECC40", "#FF851B"]
@@ -113,6 +124,7 @@
         options: {
           responsive: true,
           plugins: {
+            legend: { display: false },
             datalabels: {
               color: '#000',
               font: { weight: 'bold', size: 12 },
