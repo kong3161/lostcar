@@ -32,20 +32,44 @@
       background-color: #fff;
       border-radius: 8px;
     }
+    .button {
+      display: inline-block;
+      background-color: #2c3e50;
+      color: white;
+      padding: 10px 16px;
+      text-decoration: none;
+      border-radius: 8px;
+      margin: 10px 5px 0 0;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: center;
+    }
+    .button:hover {
+      background-color: #1a242f;
+    }
+    .link-group {
+      text-align: center;
+      margin-top: 2rem;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>📊 แดชบอร์ดสถิติรถหาย</h1>
 
-    <div class="chart-block">
-      <h3>🚗 จำนวนรถที่หายตามรุ่น (Model)</h3>
-      <canvas id="barChart" height="120"></canvas>
+    <div class="chart-block" id="model-charts">
+      <!-- Charts for each vehicle type will be inserted here -->
     </div>
 
     <div class="chart-block">
       <h3>🕒 ช่วงเวลาที่ได้รับแจ้งหาย</h3>
       <canvas id="pieChart" height="120"></canvas>
+    </div>
+
+    <div class="link-group">
+      <a href="/" class="button">📋 กลับหน้าแจ้งรถหาย</a>
+      <a href="/search" class="button">🔍 ไปหน้าค้นหา</a>
+      <a href="/results" class="button">📁 ดูผลการค้นหา</a>
     </div>
   </div>
 
@@ -55,7 +79,17 @@
       return await res.json();
     }
 
-    function renderBarChart(ctx, labels, data) {
+    function createModelChart(container, typeName, labels, data) {
+      const chartId = `bar-${typeName.replace(/[^a-zA-Z0-9]/g, '')}`;
+      const block = document.createElement("div");
+      block.className = "chart-block";
+      block.innerHTML = \`
+        <h3>🚗 รุ่นที่หาย - ประเภท: \${typeName}</h3>
+        <canvas id="\${chartId}" height="100"></canvas>
+      \`;
+      container.appendChild(block);
+
+      const ctx = document.getElementById(chartId);
       new Chart(ctx, {
         type: "bar",
         data: {
@@ -93,16 +127,18 @@
     }
 
     fetchData().then(data => {
-      const modelStats = data.models;
+      const container = document.getElementById("model-charts");
+      const modelsByType = data.models_by_type;
       const timeStats = data.time_ranges;
 
-      const modelLabels = Object.keys(modelStats);
-      const modelCounts = Object.values(modelStats);
+      for (const [typeName, models] of Object.entries(modelsByType)) {
+        const labels = Object.keys(models);
+        const values = Object.values(models);
+        createModelChart(container, typeName, labels, values);
+      }
 
       const timeLabels = Object.keys(timeStats);
       const timeCounts = Object.values(timeStats);
-
-      renderBarChart(document.getElementById("barChart"), modelLabels, modelCounts);
       renderPieChart(document.getElementById("pieChart"), timeLabels, timeCounts);
     });
   </script>
