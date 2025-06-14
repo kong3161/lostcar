@@ -1,0 +1,20 @@
+<!-- templates/images.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>รูปภาพที่แนบ</title>
+</head>
+<body>
+    <h1>รูปภาพที่แนบกับ Report ID: {{ report_id }}</h1>
+    {% if image_urls %}
+        {% for url in image_urls %}
+            <div style="margin: 10px 0;">
+                <img src="{{ url }}" alt="image" style="max-width: 400px;" />
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>ไม่พบรูปภาพ</p>
+    {% endif %}
+    <a href="/">← กลับหน้าแรก</a>
+</body>
+</html>
