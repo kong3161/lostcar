@@ -8,6 +8,8 @@ import httpx
 from datetime import datetime
 from urllib.parse import urlencode
 from math import ceil
+import cloudinary
+import cloudinary.uploader
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -79,11 +81,15 @@ async def submit(
 
         # อัปโหลดไฟล์
         if files:
+            cloudinary.config(
+                cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                api_key=os.getenv("CLOUDINARY_API_KEY"),
+                api_secret=os.getenv("CLOUDINARY_API_SECRET")
+            )
             for file in files:
                 contents = await file.read()
-                filename = f"{uuid4()}_{file.filename}"
-                supabase.storage.from_("uploads").upload(filename, contents, {"content-type": file.content_type})
-                public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
+                result = cloudinary.uploader.upload(contents, resource_type="image")
+                public_url = result["secure_url"]
                 supabase.table("file_urls").insert({
                     "report_id": report_id,
                     "file_url": public_url
