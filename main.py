@@ -65,6 +65,9 @@ async def results(request: Request,
     query = urlencode([(k, v) for k, v in query_params if k != "page"])
 
     return templates.TemplateResponse("results.html", {
+        "debug_url": debug_url,
+        "debug_status": response.status_code,
+        "debug_raw": response.text,
         "request": request,
         "results": results,
         "page": page,
