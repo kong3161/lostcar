@@ -10,6 +10,8 @@ from urllib.parse import urlencode
 from math import ceil
 import cloudinary
 import cloudinary.uploader
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -218,3 +220,4 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
+#แก้
