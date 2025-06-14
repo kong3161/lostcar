@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 import os
 import httpx
 from datetime import datetime
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from math import ceil
 
 app = FastAPI()
@@ -83,7 +83,8 @@ async def submit(
             for file in files:
                 contents = await file.read()
                 filename = f"{uuid4()}_{file.filename}"
-                supabase.storage.from_("uploads").upload(filename, contents, {"content-type": file.content_type})
+    safe_filename = quote(filename)
+    supabase.storage.from_("uploads").upload(safe_filename, contents, {"content-type": file.content_type})
                 public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
                 supabase.table("file_urls").insert({
                     "report_id": report_id,
