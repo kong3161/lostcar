@@ -44,51 +44,59 @@ async def submit(
     files: list[UploadFile] = File(None)
 ):
     from supabase import create_client
-    import os
     from uuid import uuid4
 
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_ANON_KEY")
     supabase = create_client(url, key)
 
-    # บันทึกข้อมูลหลัก
-    data = {
-        "vehicle_type": vehicle_type,
-        "brand": brand,
-        "model": model,
-        "color": color,
-        "plate_prefix": plate_prefix,
-        "plate_number": plate_number,
-        "plate_province": plate_province,
-        "engine_number": engine_number,
-        "chassis_number": chassis_number,
-        "date_lost": date_lost or None,
-        "time_event": time_event,
-        "time_reported": time_reported,
-        "location": location,
-        "lat": lat,
-        "lng": lng,
-        "reporter": reporter,
-        "details": details,
-    }
+    try:
+        data = {
+            "vehicle_type": vehicle_type,
+            "brand": brand,
+            "model": model,
+            "color": color,
+            "plate_prefix": plate_prefix,
+            "plate_number": plate_number,
+            "plate_province": plate_province,
+            "engine_number": engine_number,
+            "chassis_number": chassis_number,
+            "date_lost": date_lost or None,
+            "time_event": time_event,
+            "time_reported": time_reported,
+            "location": location,
+            "lat": lat,
+            "lng": lng,
+            "reporter": reporter,
+            "details": details,
+        }
 
-    result = supabase.table("reports").insert(data).execute()
-    report_id = result.data[0]["id"]
+        result = supabase.table("reports").insert(data).execute()
+        if not result.data or not isinstance(result.data, list):
+            return JSONResponse(status_code=500, content={"error": "❌ Insert failed", "details": result.__dict__})
 
-    # อัปโหลดไฟล์
-    if files:
-        for file in files:
-            contents = await file.read()
-            filename = f"{uuid4()}_{file.filename}"
-            supabase.storage.from_("uploads").upload(filename, contents, {"content-type": file.content_type})
-            public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
-            supabase.table("file_urls").insert({
-                "report_id": report_id,
-                "file_url": public_url
-            }).execute()
+        report_id = result.data[0]["id"]
 
-    return templates.TemplateResponse("index.html", {"request": request, "message": "✅ บันทึกข้อมูลเรียบร้อยแล้ว"})
+        # อัปโหลดไฟล์
+        if files:
+            for file in files:
+                contents = await file.read()
+                filename = f"{uuid4()}_{file.filename}"
+                supabase.storage.from_("uploads").upload(filename, contents, {"content-type": file.content_type})
+                public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
+                supabase.table("file_urls").insert({
+                    "report_id": report_id,
+                    "file_url": public_url
+                }).execute()
 
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "message": "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
+        })
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+    
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
