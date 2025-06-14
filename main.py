@@ -74,7 +74,7 @@ async def submit(
             "uploaded_at": datetime.utcnow().isoformat()
         }
 
-        result = await supabase.table("reports").insert(data).execute()
+        result = supabase.table("reports").insert(data).execute()
         print(result)
         if not result.data or not isinstance(result.data, list):
             return JSONResponse(status_code=500, content={"error": "❌ Insert failed", "details": result.__dict__})
@@ -103,7 +103,7 @@ async def submit(
 
             print("[DEBUG] All uploaded image URLs:", uploaded_urls)
             if uploaded_urls:
-                update_result = await supabase.table("reports").update({
+                update_result = supabase.table("reports").update({
                     "image_urls": json.dumps(uploaded_urls)
                 }).eq("id", report_id).execute()
                 print("[DEBUG] Supabase update result:", update_result)
@@ -252,4 +252,4 @@ async def view_images(request: Request, report_id: str):
         "image_urls": image_urls,
         "report_id": report_id
     })
-#แก้ไข
+#แก้ไข 2
