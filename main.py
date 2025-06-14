@@ -209,4 +209,3 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
-# แก้ไขล่าสุดนะ
