@@ -7,8 +7,9 @@ from fastapi.responses import HTMLResponse
 import os
 import httpx
 from datetime import datetime
-from urllib.parse import urlencode, quote
+from urllib.parse import quote
 from math import ceil
+from uuid import uuid4
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -80,30 +81,39 @@ async def submit(
 
         report_id = result.data[0]["id"]
 
-        # อัปโหลดไฟล์
+# อัปโหลดไฟล์
 if files:
     for file in files:
         try:
             contents = await file.read()
-            try:
             filename = f"{uuid4()}_{file.filename}"
             safe_filename = quote(filename)
-                supabase.storage.from_("uploads").upload(safe_filename, contents, {"content-type": file.content_type})
-            except Exception as upload_err:
-                return JSONResponse(status_code=500, content={"error": f"File upload failed: {upload_err}"})
+
+            # Upload to Supabase Storage
+            upload_response = supabase.storage.from_("uploads").upload(
+                safe_filename,
+                contents,
+                {"content-type": file.content_type}
+            )
+
+            if upload_response.get("error"):
+                return JSONResponse(status_code=500, content={"error": f"File upload failed: {upload_response['error']}"})
+
+            # บันทึก URL ลง Supabase table
             public_url = f"{url}/storage/v1/object/public/uploads/{safe_filename}"
             supabase.table("file_urls").insert({
                 "report_id": report_id,
                 "file_url": public_url
             }).execute()
+
         except Exception as e:
             return JSONResponse(status_code=500, content={"error": f"File upload failed: {str(e)}"})
-            "request": request,
-            "message": "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
-        })
 
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+# ✅ ตอบกลับเมื่อทุกอย่างเสร็จ
+return templates.TemplateResponse("index.html", {
+    "request": request,
+    "message": "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
+})
     
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
