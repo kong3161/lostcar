@@ -6,9 +6,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import os
 import httpx
-from datetime import datetime
-from urllib.parse import urlencode, quote
 from math import ceil
+from urllib.parse import quote
+from uuid import uuid4
+from datetime import datetime
+from supabase import create_client
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -43,9 +45,6 @@ async def submit(
     details: str = Form(""),
     files: list[UploadFile] = File(None)
 ):
-    from supabase import create_client
-    from uuid import uuid4
-
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_ANON_KEY")
     supabase = create_client(url, key)
@@ -69,7 +68,7 @@ async def submit(
             "lng": lng,
             "reporter": reporter,
             "details": details,
-            "uploaded_at": datetime.utcnow().isoformat()
+            "uploaded_at": datetime.utcnow().isoformat()  # ✅ เพิ่ม timestamp
         }
 
         result = supabase.table("reports").insert(data).execute()
@@ -78,18 +77,20 @@ async def submit(
 
         report_id = result.data[0]["id"]
 
-        # อัปโหลดไฟล์
         if files:
             for file in files:
                 contents = await file.read()
                 filename = f"{uuid4()}_{file.filename}"
-    safe_filename = quote(filename)
-    supabase.storage.from_("uploads").upload(safe_filename, contents, {"content-type": file.content_type})
-                public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
-                supabase.table("file_urls").insert({
-                    "report_id": report_id,
-                    "file_url": public_url
-                }).execute()
+                try:
+                    safe_filename = quote(filename)
+                    supabase.storage.from_("uploads").upload(safe_filename, contents, {"content-type": file.content_type})
+                    public_url = f"{url}/storage/v1/object/public/uploads/{safe_filename}"
+                    supabase.table("file_urls").insert({
+                        "report_id": report_id,
+                        "file_url": public_url
+                    }).execute()
+                except Exception as e:
+                    return JSONResponse(status_code=500, content={"error": f"File upload failed: {str(e)}"})
 
         return templates.TemplateResponse("index.html", {
             "request": request,
@@ -98,7 +99,7 @@ async def submit(
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-    
+            
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
