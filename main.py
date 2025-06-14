@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -131,4 +130,98 @@ async def show_results(
         "debug_raw": response.text,
         "page": page,
         "total_pages": total_pages
+    })
+
+from fastapi import UploadFile
+from uuid import uuid4
+
+@app.post("/submit", response_class=HTMLResponse)
+async def submit(
+    request: Request,
+    vehicle_type: str = Form(...),
+    brand: str = Form(...),
+    model: str = Form(...),
+    color: str = Form(""),
+    plate_prefix: str = Form(""),
+    plate_number: str = Form(""),
+    plate_province: str = Form(""),
+    engine_number: str = Form(""),
+    chassis_number: str = Form(""),
+    date_lost: str = Form(...),
+    time_event: str = Form(...),
+    time_reported: str = Form(...),
+    location: str = Form(...),
+    lat: str = Form(...),
+    lng: str = Form(...),
+    reporter: str = Form(...),
+    details: str = Form(...),
+    files: list[UploadFile] = File(None)
+):
+    uploaded_at = datetime.utcnow().isoformat()
+    data = {
+        "vehicle_type": vehicle_type,
+        "brand": brand,
+        "model": model,
+        "color": color,
+        "plate_prefix": plate_prefix,
+        "plate_number": plate_number,
+        "plate_province": plate_province,
+        "engine_number": engine_number,
+        "chassis_number": chassis_number,
+        "date_lost": date_lost,
+        "time_event": time_event,
+        "time_reported": time_reported,
+        "location": location,
+        "lat": lat,
+        "lng": lng,
+        "reporter": reporter,
+        "details": details,
+        "uploaded_at": uploaded_at
+    }
+
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{SUPABASE_URL}/rest/v1/reports",
+            json=data,
+            headers=headers
+        )
+        if response.status_code not in [200, 201]:
+            return templates.TemplateResponse("submitted.html", {
+                "request": request,
+                "message": f"❌ ไม่สามารถบันทึกข้อมูลได้: {response.status_code}"
+            })
+
+        report_id = response.json().get("id")
+        if files:
+            for file in files:
+                contents = await file.read()
+                filename = f"{uuid4()}_{file.filename}"
+                upload_res = await client.put(
+                    f"{SUPABASE_URL}/storage/v1/object/uploads/{filename}",
+                    content=contents,
+                    headers={
+                        "apikey": SUPABASE_KEY,
+                        "Authorization": f"Bearer {SUPABASE_KEY}",
+                        "Content-Type": file.content_type
+                    }
+                )
+                if upload_res.status_code in [200, 201]:
+                    file_url = f"https://{SUPABASE_URL.split('//')[1]}/storage/v1/object/public/uploads/{filename}"
+                    await client.post(
+                        f"{SUPABASE_URL}/rest/v1/file_urls",
+                        json={"report_id": report_id, "file_url": file_url},
+                        headers=headers
+                    )
+
+    return templates.TemplateResponse("submitted.html", {
+        "request": request,
+        "brand": brand,
+        "model": model,
+        "message": "✅ บันทึกข้อมูลสำเร็จ"
     })
