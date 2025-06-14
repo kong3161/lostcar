@@ -20,7 +20,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_form(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+            return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/submit")
 async def submit(
@@ -81,8 +81,8 @@ async def submit(
 
         report_id = result.data[0]["id"]
 
-# อัปโหลดไฟล์
-if files:
+        # อัปโหลดไฟล์
+        if files:
     for file in files:
         try:
             contents = await file.read()
@@ -110,7 +110,7 @@ if files:
             return JSONResponse(status_code=500, content={"error": f"File upload failed: {str(e)}"})
 
 # ✅ ตอบกลับเมื่อทุกอย่างเสร็จ
-return templates.TemplateResponse("index.html", {
+        return templates.TemplateResponse("index.html", {
     "request": request,
     "message": "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
 })
