@@ -45,6 +45,7 @@ async def submit(
 ):
     from supabase import create_client
     from uuid import uuid4
+from urllib.parse import quote
 
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_ANON_KEY")
@@ -83,8 +84,9 @@ async def submit(
             for file in files:
                 contents = await file.read()
                 filename = f"{uuid4()}_{file.filename}"
-                supabase.storage.from_("uploads").upload(filename, contents, {"content-type": file.content_type})
-                public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
+        safe_filename = quote(filename, safe='')
+                supabase.storage.from_("uploads").upload(safe_filename, contents, {"content-type": file.content_type})
+                public_url = f"{url}/storage/v1/object/public/uploads/{safe_filename}"
                 supabase.table("file_urls").insert({
                     "report_id": report_id,
                     "file_url": public_url
