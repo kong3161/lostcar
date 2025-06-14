@@ -205,7 +205,13 @@ async def show_results(
     items = response.json() if response.status_code == 200 else []
 
     for item in items:
-        image_urls = item.get("image_urls") or []
+        raw = item.get("image_urls")
+        if isinstance(raw, list):
+            image_urls = raw
+        elif isinstance(raw, str):
+            image_urls = [raw]
+        else:
+            image_urls = []
         item["files"] = [{"file_url": url} for url in image_urls]
 
     total = len(count_response.json()) if count_response.status_code == 200 else 0
@@ -220,4 +226,4 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
-#แก้
+#แก้ 2
