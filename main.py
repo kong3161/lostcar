@@ -1,255 +1,27 @@
-from fastapi import FastAPI, Form, UploadFile, File, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-import os
-import httpx
-from urllib.parse import urlencode
-from datetime import datetime
-from math import ceil
-from dotenv import load_dotenv
-import json
-load_dotenv()
-
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
-
-@app.get("/", response_class=HTMLResponse)
-async def read_form(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-@app.post("/submit")
-async def submit(
-    request: Request,
-    vehicle_type: str = Form(...),
-    brand: str = Form(...),
-    model: str = Form(...),
-    color: str = Form(""),
-    plate_prefix: str = Form(""),
-    plate_number: str = Form(""),
-    plate_province: str = Form(""),
-    engine_number: str = Form(""),
-    chassis_number: str = Form(""),
-    date_lost: str = Form(""),
-    time_event: str = Form(""),
-    time_reported: str = Form(""),
-    location: str = Form(""),
-    lat: str = Form(""),
-    lng: str = Form(""),
-    reporter: str = Form(""),
-    details: str = Form(""),
-    files: list[UploadFile] = File(None)
-):
-    from supabase import create_client
-    from uuid import uuid4
-
-    url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_ANON_KEY")
-    supabase = create_client(url, key)
-
-    try:
-        data = {
-            "vehicle_type": vehicle_type,
-            "brand": brand,
-            "model": model,
-            "color": color,
-            "plate_prefix": plate_prefix,
-            "plate_number": plate_number,
-            "plate_province": plate_province,
-            "engine_number": engine_number,
-            "chassis_number": chassis_number,
-            "date_lost": date_lost or None,
-            "time_event": time_event,
-            "time_reported": time_reported,
-            "location": location,
-            "lat": lat,
-            "lng": lng,
-            "reporter": reporter,
-            "details": details,
-            "uploaded_at": datetime.utcnow().isoformat()
-        }
-
-        result = supabase.table("reports").insert(data).execute()
-        print(result)
-        if not result.data or not isinstance(result.data, list):
-            return JSONResponse(status_code=500, content={"error": "❌ Insert failed", "details": result.__dict__})
-
-        report_id = result.data[0]["id"]
-
-        uploaded_urls = []
-
-        if files:
-            import cloudinary
-            import cloudinary.uploader
-
-            cloudinary.config(
-                cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-                api_key=os.getenv("CLOUDINARY_API_KEY"),
-                api_secret=os.getenv("CLOUDINARY_API_SECRET"),
-                secure=True
-            )
-
-            for file in files:
-                contents = await file.read()
-                upload_result = cloudinary.uploader.upload(contents, resource_type="image")
-                uploaded_url = upload_result.get("secure_url")
-                if uploaded_url:
-                    uploaded_urls.append(uploaded_url)
-
-            print("[DEBUG] All uploaded image URLs:", uploaded_urls)
-            if uploaded_urls:
-                update_result = supabase.table("reports").update({
-                    "image_urls": json.dumps(uploaded_urls)
-                }).eq("id", report_id).execute()
-                print("[DEBUG] Supabase update result:", update_result)
-            else:
-                print("[DEBUG] No image URLs were uploaded, skipping Supabase update")
-
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "message": "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
-        })
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
-@app.get("/dashboard-data")
-async def dashboard_data():
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported", headers=headers)
-
-    data = response.json()
-
-    # แยกข้อมูลรุ่นตามประเภทรถ
-    models_by_type = {}
-    time_ranges = {"00.01-08.00 น.": 0, "08.01-16.00 น.": 0, "16.01-24.00 น.": 0}
-
-    for row in data:
-        type_ = row.get("vehicle_type", "ไม่ระบุ")
-        model = row.get("model", "ไม่ระบุ").strip().upper()
-
-        if type_ not in models_by_type:
-            models_by_type[type_] = {}
-        models_by_type[type_][model] = models_by_type[type_].get(model, 0) + 1
-
-        t = row.get("time_reported")
-        if t:
-            h = int(str(t).split(":")[0])
-            if 0 <= h <= 8:
-                time_ranges["00.01-08.00 น."] += 1
-            elif 8 < h <= 16:
-                time_ranges["08.01-16.00 น."] += 1
-            else:
-                time_ranges["16.01-24.00 น."] += 1
-
-    return {
-        "models_by_type": models_by_type,
-        "time_ranges": time_ranges
-    }
-
-
-@app.get("/search", response_class=HTMLResponse)
-async def search_page(request: Request):
-    return templates.TemplateResponse("search.html", {"request": request})
-
-@app.get("/results", response_class=HTMLResponse)
-async def show_results(
-    request: Request,
-    page: int = 1,
-    vehicle_type: str = "",
-    brand: str = "",
-    model: str = "",
-    date_lost: str = "",
-    reporter: str = "",
-    color: str = "",
-    plate_number: str = "",
-    engine_number: str = "",
-    chassis_number: str = ""
-):
-    limit = 5
-    offset = (page - 1) * limit
-
-    filter_parts = []
-    if vehicle_type:
-        filter_parts.append(f"vehicle_type=eq.{vehicle_type}")
-    if brand:
-        filter_parts.append(f"brand=ilike.*{brand}*")
-    if model:
-        filter_parts.append(f"model=ilike.*{model}*")
-    if date_lost:
-        filter_parts.append(f"date_lost=eq.{date_lost}")
-    if reporter:
-        filter_parts.append(f"reporter=ilike.*{reporter}*")
-    if color:
-        filter_parts.append(f"color=ilike.*{color}*")
-    if plate_number:
-        filter_parts.append(f"plate_number=ilike.*{plate_number}*")
-    if engine_number:
-        filter_parts.append(f"engine_number=ilike.*{engine_number}*")
-    if chassis_number:
-        filter_parts.append(f"chassis_number=ilike.*{chassis_number}*")
-
-    filter_query = "&".join(filter_parts)
-    base_url = f"{SUPABASE_URL}/rest/v1/reports"
-    url = f"{base_url}?{filter_query}&order=uploaded_at.desc&limit={limit}&offset={offset}" if filter_query else f"{base_url}?order=uploaded_at.desc&limit={limit}&offset={offset}"
-    count_url = f"{base_url}?select=id&{filter_query}" if filter_query else f"{base_url}?select=id"
-
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
-        count_response = await client.get(count_url, headers={**headers, "Prefer": "count=exact"})
-
-    items = response.json() if response.status_code == 200 else []
-    total = len(count_response.json()) if count_response.status_code == 200 else 0
-    total_pages = ceil(total / limit) if total > 0 else 1
-
-    return templates.TemplateResponse("results.html", {
-        "request": request,
-        "items": items,
-        "debug_url": url,
-        "debug_status": response.status_code,
-        "debug_raw": response.text,
-        "page": page,
-        "total_pages": total_pages
-    })
-#แก้ไข1805
-
 @app.get("/images/{report_id}", response_class=HTMLResponse)
 async def view_images(request: Request, report_id: str):
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=image_urls&id=eq.{report_id}", headers=headers)
+    import cloudinary
+    import cloudinary.api
 
-    if response.status_code != 200:
-        return JSONResponse(status_code=response.status_code, content={"error": "ไม่พบข้อมูลภาพ"})
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+        secure=True
+    )
 
-    data = response.json()
-    raw = data[0].get("image_urls", "[]") if data else "[]"
-    image_urls = json.loads(raw) if isinstance(raw, str) else raw
+    try:
+        result = cloudinary.api.resources(
+            type="upload",
+            prefix=f"lostcar/{report_id}/",
+            max_results=30
+        )
+        image_urls = [r["secure_url"] for r in result.get("resources", [])]
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
     return templates.TemplateResponse("images.html", {
         "request": request,
         "image_urls": image_urls,
         "report_id": report_id
     })
-#แก้ไข 2
