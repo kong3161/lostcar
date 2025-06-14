@@ -69,33 +69,35 @@ async def submit(
         result = supabase.table("reports").insert(data).execute()
         report_id = result.data[0]["id"]
 
-        if files:
-            for file in files:
+            if files:
+        for file in files:
+            try:
                 contents = await file.read()
-                original_name = file.filename
-                filename = f"{uuid4()}_{original_name}"
-                safe_filename = quote_plus(filename, encoding='utf-8')
+                filename = f"{uuid4()}_{file.filename}"
+                safe_filename = quote_plus(filename)
 
-                upload_res = supabase.storage.from_("uploads").upload(
+                response = supabase.storage.from_("uploads").upload(
                     path=safe_filename,
                     file=contents,
-                    file_options={"content-type": file.content_type}
+                    file_options={{"content-type": file.content_type}}
                 )
 
-                if upload_res.get("error"):
-                    return JSONResponse(status_code=400, content={"error": f"File upload failed: {upload_res['error']}"})
+                if response.get("error"):
+                    raise Exception(f"Upload failed: {{response['error']}}")
 
-                public_url = f"{SUPABASE_URL}/storage/v1/object/public/uploads/{safe_filename}"
+                public_url = f"{url}/storage/v1/object/public/uploads/{{safe_filename}}"
 
-                file_insert = supabase.table("file_urls").insert({
+                insert_result = supabase.table("file_urls").insert({{
                     "report_id": report_id,
                     "file_url": public_url
-                }).execute()
+                }}).execute()
 
-                if file_insert.get("error"):
-                    return JSONResponse(status_code=400, content={"error": f"Insert file_url failed: {file_insert['error']}"})
+                if insert_result.get("error"):
+                    raise Exception(f"Insert URL failed: {{insert_result['error']}}")
 
-@app.get("/dashboard", response_class=HTMLResponse)
+            except Exception as e:
+                return JSONResponse(status_code=500, content={{"error": f"File upload failed: {{str(e)}}"}})
+    
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
