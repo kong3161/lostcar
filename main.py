@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -6,9 +5,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import os
 import httpx
-from datetime import datetime
 from urllib.parse import urlencode
+from datetime import datetime
 from math import ceil
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -78,17 +79,27 @@ async def submit(
 
         report_id = result.data[0]["id"]
 
-        # อัปโหลดไฟล์
+        # อัปโหลดไฟล์ไปยัง Cloudinary
         if files:
+            import cloudinary
+            import cloudinary.uploader
+
+            cloudinary.config(
+                cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                api_key=os.getenv("CLOUDINARY_API_KEY"),
+                api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+                secure=True
+            )
+
+            uploaded_urls = []
+
             for file in files:
                 contents = await file.read()
-                filename = f"{uuid4()}_{file.filename}"
-                supabase.storage.from_("uploads").upload(filename, contents, {"content-type": file.content_type})
-                public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
-                supabase.table("file_urls").insert({
-                    "report_id": report_id,
-                    "file_url": public_url
-                }).execute()
+                upload_result = cloudinary.uploader.upload(contents, resource_type="image")
+                uploaded_urls.append(upload_result.get("secure_url"))
+
+            # เพิ่ม URL รูปภาพลงใน record ที่สร้างไว้
+            supabase.table("reports").update({"image_urls": uploaded_urls}).eq("id", report_id).execute()
 
         return templates.TemplateResponse("index.html", {
             "request": request,
@@ -210,3 +221,24 @@ async def show_results(
         "total_pages": total_pages
     })
 #แก้ไข1805
+
+@app.get("/images/{report_id}", response_class=HTMLResponse)
+async def view_images(request: Request, report_id: str):
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=image_urls&id=eq.{report_id}", headers=headers)
+
+    if response.status_code != 200:
+        return JSONResponse(status_code=response.status_code, content={"error": "ไม่พบข้อมูลภาพ"})
+
+    data = response.json()
+    image_urls = data[0].get("image_urls", []) if data else []
+
+    return templates.TemplateResponse("images.html", {
+        "request": request,
+        "image_urls": image_urls,
+        "report_id": report_id
+    })

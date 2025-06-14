@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -38,6 +37,7 @@
         {% if item.lat and item.lng %}
         <iframe src="https://maps.google.com/maps?q={{ item.lat }},{{ item.lng }}&z=15&output=embed"></iframe>
         {% endif %}
+        <a href="/images/{{ item.id }}" class="btn">📷 ดูรูปภาพ</a>
       </div>
       {% endfor %}
 
