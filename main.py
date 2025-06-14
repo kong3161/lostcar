@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 from datetime import datetime
 from math import ceil
 from dotenv import load_dotenv
+import json
 load_dotenv()
 
 app = FastAPI()
@@ -98,7 +99,7 @@ async def submit(
                 uploaded_url = upload_result.get("secure_url")
                 if uploaded_url:
                     uploaded_urls.append(uploaded_url)
-            supabase.table("reports").update({"image_urls": ",".join(uploaded_urls)}).eq("id", report_id).execute()
+            supabase.table("reports").update({"image_urls": json.dumps(uploaded_urls)}).eq("id", report_id).execute()
 
         return templates.TemplateResponse("index.html", {
             "request": request,
@@ -107,7 +108,7 @@ async def submit(
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-    
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
@@ -234,7 +235,8 @@ async def view_images(request: Request, report_id: str):
         return JSONResponse(status_code=response.status_code, content={"error": "ไม่พบข้อมูลภาพ"})
 
     data = response.json()
-    image_urls = data[0].get("image_urls", []) if data else []
+    raw = data[0].get("image_urls", "[]") if data else "[]"
+    image_urls = json.loads(raw) if isinstance(raw, str) else raw
 
     return templates.TemplateResponse("images.html", {
         "request": request,
