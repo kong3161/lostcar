@@ -92,13 +92,12 @@ async def submit(
             )
 
             uploaded_urls = []
-
             for file in files:
                 contents = await file.read()
-                upload_result = cloudinary.uploader.upload(contents, resource_type="image")
-                uploaded_urls.append(upload_result.get("secure_url"))
-
-            # เพิ่ม URL รูปภาพลงใน record ที่สร้างไว้
+                upload_result = cloudinary.uploader.upload(contents, resource_type="image", filename=file.filename)
+                uploaded_url = upload_result.get("secure_url")
+                if uploaded_url:
+                    uploaded_urls.append(uploaded_url)
             supabase.table("reports").update({"image_urls": uploaded_urls}).eq("id", report_id).execute()
 
         return templates.TemplateResponse("index.html", {

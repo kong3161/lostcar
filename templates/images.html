@@ -1,20 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-    <div style="max-width: 960px; margin: 0 auto; padding: 2rem;">
-        <h1 style="margin-bottom: 1.5rem;">รูปภาพที่แนบกับ Report ID: {{ report_id }}</h1>
+    <div class="container mt-4">
+        <h2 class="mb-4 text-center">รูปภาพสำหรับหมายเลขรายงาน: {{ report_id }}</h2>
         {% if image_urls %}
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+            <div class="row">
                 {% for url in image_urls %}
-                    <div style="flex: 1 1 200px;">
-                        <img src="{{ url }}" alt="image" style="width: 100%; height: auto; border: 1px solid #ccc; border-radius: 8px;" />
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm">
+                            <img src="{{ url }}" class="card-img-top" alt="แนบภาพ">
+                        </div>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p>ไม่พบรูปภาพ</p>
+            <div class="alert alert-warning text-center">ไม่พบรูปภาพที่แนบมา</div>
         {% endif %}
-        <div style="margin-top: 2rem;">
-            <a href="/" style="text-decoration: none; color: #007bff;">← กลับหน้าแรก</a>
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-primary">← กลับหน้าแรก</a>
         </div>
     </div>
 {% endblock %}
