@@ -4,3 +4,5 @@ python-multipart
 jinja2
 httpx
 supabase
+python-dotenv
+cloudinary
