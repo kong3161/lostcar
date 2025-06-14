@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -97,7 +96,7 @@ async def submit(
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-    
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
@@ -197,6 +196,24 @@ async def show_results(
         count_response = await client.get(count_url, headers={**headers, "Prefer": "count=exact"})
 
     items = response.json() if response.status_code == 200 else []
+
+    from supabase import create_client
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_ANON_KEY")
+    supabase = create_client(url, key)
+
+    report_ids = [item["id"] for item in items]
+    if report_ids:
+        file_results = supabase.table("file_urls").select("report_id,file_url").in_("report_id", report_ids).execute()
+
+        file_map = {}
+        for f in file_results.data:
+            rid = f["report_id"]
+            file_map.setdefault(rid, []).append(f)
+
+        for item in items:
+            item["files"] = file_map.get(item["id"], [])
+
     total = len(count_response.json()) if count_response.status_code == 200 else 0
     total_pages = ceil(total / limit) if total > 0 else 1
 
