@@ -80,7 +80,8 @@ async def submit(
 
         report_id = result.data[0]["id"]
 
-        # อัปโหลดไฟล์ไปยัง Cloudinary
+        uploaded_urls = []
+
         if files:
             import cloudinary
             import cloudinary.uploader
@@ -92,14 +93,20 @@ async def submit(
                 secure=True
             )
 
-            uploaded_urls = []
             for file in files:
                 contents = await file.read()
-                upload_result = cloudinary.uploader.upload(contents, resource_type="image", filename=file.filename)
+                upload_result = cloudinary.uploader.upload(contents, resource_type="image")
                 uploaded_url = upload_result.get("secure_url")
                 if uploaded_url:
                     uploaded_urls.append(uploaded_url)
-            supabase.table("reports").update({"image_urls": json.dumps(uploaded_urls)}).eq("id", report_id).execute()
+
+            print("[DEBUG] All uploaded image URLs:", uploaded_urls)
+            if uploaded_urls:
+                supabase.table("reports").update({
+                    "image_urls": json.dumps(uploaded_urls)
+                }).eq("id", report_id).execute()
+            else:
+                print("[DEBUG] No image URLs were uploaded, skipping Supabase update")
 
         return templates.TemplateResponse("index.html", {
             "request": request,
