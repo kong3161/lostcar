@@ -52,6 +52,20 @@ async def submit(
     supabase = create_client(url, key)
 
     try:
+        uploaded_urls = []
+        # อัปโหลดไฟล์
+        if files:
+            cloudinary.config(
+                cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                api_key=os.getenv("CLOUDINARY_API_KEY"),
+                api_secret=os.getenv("CLOUDINARY_API_SECRET")
+            )
+            for file in files:
+                contents = await file.read()
+                result = cloudinary.uploader.upload(contents, resource_type="image")
+                public_url = result["secure_url"]
+                uploaded_urls.append(public_url)
+
         data = {
             "vehicle_type": vehicle_type,
             "brand": brand,
@@ -70,7 +84,8 @@ async def submit(
             "lng": lng,
             "reporter": reporter,
             "details": details,
-            "uploaded_at": datetime.utcnow().isoformat()
+            "uploaded_at": datetime.utcnow().isoformat(),
+            "image_urls": uploaded_urls
         }
 
         result = supabase.table("reports").insert(data).execute()
@@ -78,22 +93,6 @@ async def submit(
             return JSONResponse(status_code=500, content={"error": "❌ Insert failed", "details": result.__dict__})
 
         report_id = result.data[0]["id"]
-
-        # อัปโหลดไฟล์
-        if files:
-            cloudinary.config(
-                cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-                api_key=os.getenv("CLOUDINARY_API_KEY"),
-                api_secret=os.getenv("CLOUDINARY_API_SECRET")
-            )
-            for file in files:
-                contents = await file.read()
-                result = cloudinary.uploader.upload(contents, resource_type="image")
-                public_url = result["secure_url"]
-                supabase.table("file_urls").insert({
-                    "report_id": report_id,
-                    "file_url": public_url
-                }).execute()
 
         return templates.TemplateResponse("index.html", {
             "request": request,
@@ -203,22 +202,8 @@ async def show_results(
 
     items = response.json() if response.status_code == 200 else []
 
-    from supabase import create_client
-    url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_ANON_KEY")
-    supabase = create_client(url, key)
-
-    report_ids = [item["id"] for item in items]
-    if report_ids:
-        file_results = supabase.table("file_urls").select("report_id,file_url").in_("report_id", report_ids).execute()
-
-        file_map = {}
-        for f in file_results.data:
-            rid = f["report_id"]
-            file_map.setdefault(rid, []).append(f)
-
-        for item in items:
-            item["files"] = file_map.get(item["id"], [])
+    for item in items:
+        item["files"] = [{"file_url": url} for url in item.get("image_urls", [])]
 
     total = len(count_response.json()) if count_response.status_code == 200 else 0
     total_pages = ceil(total / limit) if total > 0 else 1
