@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -6,9 +7,9 @@ import os
 import httpx
 from datetime import datetime
 from urllib.parse import urlencode, quote
+from math import ceil
 from uuid import uuid4
 from supabase import create_client
-from math import ceil
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -18,11 +19,9 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-
 @app.get("/", response_class=HTMLResponse)
 async def read_form(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
 
 @app.post("/submit")
 async def submit(
@@ -65,30 +64,42 @@ async def submit(
             "lng": lng,
             "reporter": reporter,
             "details": details,
-            "uploaded_at": datetime.utcnow().isoformat()
         }
 
         result = supabase.table("reports").insert(data).execute()
+        if not result.data or not isinstance(result.data, list):
+            return JSONResponse(status_code=500, content={"error": "❌ Insert failed", "details": result.__dict__})
+
         report_id = result.data[0]["id"]
 
-        # อัปโหลดไฟล์
         if files:
             for file in files:
                 try:
                     contents = await file.read()
-                    filename = f"{uuid4()}_{file.filename}"
-                    safe_filename = quote(filename)
-                    supabase.storage.from_("uploads").upload(
-                        safe_filename, contents,
+                    original_filename = file.filename
+                    uuid_filename = f"{uuid4()}_{original_filename}"
+                    safe_filename = quote(uuid_filename, safe='')
+
+                    response = supabase.storage.from_("uploads").upload(
+                        safe_filename,
+                        contents,
                         {"content-type": file.content_type}
                     )
+
+                    if response.status_code != 200:
+                        return JSONResponse(status_code=500, content={
+                            "error": f"File upload failed: {response.json()}"
+                        })
+
                     public_url = f"{SUPABASE_URL}/storage/v1/object/public/uploads/{safe_filename}"
+
                     supabase.table("file_urls").insert({
                         "report_id": report_id,
                         "file_url": public_url
                     }).execute()
-                except Exception as upload_err:
-                    return JSONResponse(status_code=500, content={"error": f"File upload failed: {upload_err}"})
+
+                except Exception as e:
+                    return JSONResponse(status_code=500, content={"error": f"File upload failed: {str(e)}"})
 
         return templates.TemplateResponse("index.html", {
             "request": request,
@@ -98,11 +109,9 @@ async def submit(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
-
 
 @app.get("/dashboard-data")
 async def dashboard_data():
@@ -112,19 +121,19 @@ async def dashboard_data():
     }
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported",
-            headers=headers
-        )
+        response = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported", headers=headers)
 
     data = response.json()
+
     models_by_type = {}
     time_ranges = {"00.01-08.00 น.": 0, "08.01-16.00 น.": 0, "16.01-24.00 น.": 0}
 
     for row in data:
         type_ = row.get("vehicle_type", "ไม่ระบุ")
         model = row.get("model", "ไม่ระบุ").strip().upper()
-        models_by_type.setdefault(type_, {})
+
+        if type_ not in models_by_type:
+            models_by_type[type_] = {}
         models_by_type[type_][model] = models_by_type[type_].get(model, 0) + 1
 
         t = row.get("time_reported")
@@ -137,13 +146,14 @@ async def dashboard_data():
             else:
                 time_ranges["16.01-24.00 น."] += 1
 
-    return {"models_by_type": models_by_type, "time_ranges": time_ranges}
-
+    return {
+        "models_by_type": models_by_type,
+        "time_ranges": time_ranges
+    }
 
 @app.get("/search", response_class=HTMLResponse)
 async def search_page(request: Request):
     return templates.TemplateResponse("search.html", {"request": request})
-
 
 @app.get("/results", response_class=HTMLResponse)
 async def show_results(
