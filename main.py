@@ -165,6 +165,8 @@ async def show_results(
     engine_number: str = "",
     chassis_number: str = ""
 ):
+    import json
+
     limit = 5
     offset = (page - 1) * limit
 
@@ -206,12 +208,18 @@ async def show_results(
 
     for item in items:
         raw = item.get("image_urls")
-        if isinstance(raw, list):
-            image_urls = raw
-        elif isinstance(raw, str):
-            image_urls = [raw]
+        try:
+            parsed = json.loads(raw) if isinstance(raw, str) else raw
+        except Exception:
+            parsed = raw
+
+        if isinstance(parsed, list):
+            image_urls = parsed
+        elif isinstance(parsed, str):
+            image_urls = [parsed]
         else:
             image_urls = []
+
         item["files"] = [{"file_url": url} for url in image_urls]
 
     total = len(count_response.json()) if count_response.status_code == 200 else 0
@@ -226,4 +234,4 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
-#แก้ 2
+#แก้ 3
