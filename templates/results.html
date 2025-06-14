@@ -37,11 +37,11 @@
         {% if item.lat and item.lng %}
         <iframe src="https://maps.google.com/maps?q={{ item.lat }},{{ item.lng }}&z=15&output=embed"></iframe>
         {% endif %}
-        {% if item.files %}
+        {% if item.image_urls %}
           <button onclick="toggleImages('img-{{ item.id }}')" class="btn">📷 ดูรูปภาพ</button>
           <div id="img-{{ item.id }}" style="display:none; margin-top:1rem;">
-            {% for file in item.files %}
-              <img src="{{ file.file_url }}" width="300" style="margin-bottom: 1rem;"><br>
+            {% for url in item.image_urls %}
+              <img src="{{ url }}" width="300" style="margin-bottom: 1rem;"><br>
             {% endfor %}
           </div>
         {% endif %}

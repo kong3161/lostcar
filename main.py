@@ -203,7 +203,8 @@ async def show_results(
     items = response.json() if response.status_code == 200 else []
 
     for item in items:
-        item["files"] = [{"file_url": url} for url in item.get("image_urls", [])]
+        image_urls = item.get("image_urls") or []
+        item["files"] = [{"file_url": url} for url in image_urls]
 
     total = len(count_response.json()) if count_response.status_code == 200 else 0
     total_pages = ceil(total / limit) if total > 0 else 1
