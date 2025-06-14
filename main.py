@@ -69,6 +69,7 @@ async def submit(
             "lng": lng,
             "reporter": reporter,
             "details": details,
+            "uploaded_at": datetime.utcnow().isoformat()
         }
 
         result = supabase.table("reports").insert(data).execute()
