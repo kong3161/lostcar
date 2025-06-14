@@ -1,20 +1,20 @@
-<!-- templates/images.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>รูปภาพที่แนบ</title>
-</head>
-<body>
-    <h1>รูปภาพที่แนบกับ Report ID: {{ report_id }}</h1>
-    {% if image_urls %}
-        {% for url in image_urls %}
-            <div style="margin: 10px 0;">
-                <img src="{{ url }}" alt="image" style="max-width: 400px;" />
+{% extends "base.html" %}
+{% block content %}
+    <div style="max-width: 960px; margin: 0 auto; padding: 2rem;">
+        <h1 style="margin-bottom: 1.5rem;">รูปภาพที่แนบกับ Report ID: {{ report_id }}</h1>
+        {% if image_urls %}
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                {% for url in image_urls %}
+                    <div style="flex: 1 1 200px;">
+                        <img src="{{ url }}" alt="image" style="width: 100%; height: auto; border: 1px solid #ccc; border-radius: 8px;" />
+                    </div>
+                {% endfor %}
             </div>
-        {% endfor %}
-    {% else %}
-        <p>ไม่พบรูปภาพ</p>
-    {% endif %}
-    <a href="/">← กลับหน้าแรก</a>
-</body>
-</html>
+        {% else %}
+            <p>ไม่พบรูปภาพ</p>
+        {% endif %}
+        <div style="margin-top: 2rem;">
+            <a href="/" style="text-decoration: none; color: #007bff;">← กลับหน้าแรก</a>
+        </div>
+    </div>
+{% endblock %}
