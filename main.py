@@ -98,7 +98,7 @@ async def submit(
                 uploaded_url = upload_result.get("secure_url")
                 if uploaded_url:
                     uploaded_urls.append(uploaded_url)
-            supabase.table("reports").update({"image_urls": uploaded_urls}).eq("id", report_id).execute()
+            supabase.table("reports").update({"image_urls": ",".join(uploaded_urls)}).eq("id", report_id).execute()
 
         return templates.TemplateResponse("index.html", {
             "request": request,

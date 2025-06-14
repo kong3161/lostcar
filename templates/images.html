@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container mt-4">
-        <h2 class="mb-4 text-center">รูปภาพสำหรับหมายเลขรายงาน: {{ report_id }}</h2>
-        {% if image_urls %}
-            <div class="row">
-                {% for url in image_urls %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card shadow-sm">
-                            <img src="{{ url }}" class="card-img-top" alt="แนบภาพ">
-                        </div>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">รูปภาพของรายงาน #{{ report_id }}</h2>
+    {% if image_urls %}
+        <div class="row">
+            {% for url in image_urls %}
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <img src="{{ url }}" class="card-img-top" alt="ภาพจากรายงาน {{ report_id }}">
                     </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="alert alert-warning text-center">ไม่พบรูปภาพที่แนบมา</div>
-        {% endif %}
-        <div class="text-center mt-4">
-            <a href="/" class="btn btn-primary">← กลับหน้าแรก</a>
+                </div>
+            {% endfor %}
         </div>
+    {% else %}
+        <p class="text-center">ไม่มีรูปภาพสำหรับรายงานนี้</p>
+    {% endif %}
+    <div class="text-center mt-4">
+        <a href="/" class="btn btn-secondary">ย้อนกลับหน้าหลัก</a>
     </div>
+</div>
 {% endblock %}
