@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 import os
 import httpx
 from datetime import datetime
-from urllib.parse import quote
+from urllib.parse import quote_plus
 from uuid import uuid4
 from math import ceil
 from supabase import create_client
@@ -63,6 +63,7 @@ async def submit(
             "lng": lng,
             "reporter": reporter,
             "details": details,
+            "uploaded_at": datetime.utcnow().isoformat()
         }
 
         result = supabase.table("reports").insert(data).execute()
@@ -71,18 +72,28 @@ async def submit(
         if files:
             for file in files:
                 contents = await file.read()
-                filename = f"{uuid4()}_{file.filename}"
-                safe_filename = quote(filename)
-                supabase.storage.from_("uploads").upload(safe_filename, contents, {"content-type": file.content_type})
+                original_name = file.filename
+                filename = f"{uuid4()}_{original_name}"
+                safe_filename = quote_plus(filename, encoding='utf-8')
+
+                upload_res = supabase.storage.from_("uploads").upload(
+                    path=safe_filename,
+                    file=contents,
+                    file_options={"content-type": file.content_type}
+                )
+
+                if upload_res.get("error"):
+                    return JSONResponse(status_code=400, content={"error": f"File upload failed: {upload_res['error']}"})
+
                 public_url = f"{SUPABASE_URL}/storage/v1/object/public/uploads/{safe_filename}"
-                supabase.table("file_urls").insert({
+
+                file_insert = supabase.table("file_urls").insert({
                     "report_id": report_id,
                     "file_url": public_url
                 }).execute()
 
-        return templates.TemplateResponse("index.html", {"request": request, "message": "✅ บันทึกข้อมูลเรียบร้อยแล้ว"})
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+                if file_insert.get("error"):
+                    return JSONResponse(status_code=400, content={"error": f"Insert file_url failed: {file_insert['error']}"})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
