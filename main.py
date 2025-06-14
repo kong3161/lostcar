@@ -81,18 +81,18 @@ async def submit(
 
         if files:
             for file in files:
-    contents = await file.read()
-    ext = Path(file.filename).suffix or ".dat"
-    filename = f"{uuid4()}{ext}"
-    try:
-        supabase.storage.from_("uploads").upload(filename, contents, {"content-type": file.content_type})
-        public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
-        supabase.table("file_urls").insert({
-            "report_id": report_id,
-            "file_url": public_url
-        }).execute()
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": f"File upload failed: {str(e)}"})
+                contents = await file.read()
+                ext = Path(file.filename).suffix or ".dat"
+                filename = f"{uuid4()}{ext}"
+                try:
+                    supabase.storage.from_("uploads").upload(filename, contents, {"content-type": file.content_type})
+                    public_url = f"{url}/storage/v1/object/public/uploads/{filename}"
+                    supabase.table("file_urls").insert({
+                        "report_id": report_id,
+                        "file_url": public_url
+                    }).execute()
+                except Exception as e:
+                    return JSONResponse(status_code=500, content={"error": f"File upload failed: {str(e)}"})
 
         return templates.TemplateResponse("index.html", {
             "request": request,
