@@ -262,5 +262,5 @@ async def show_map(request: Request):
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     response = supabase.table("reports").select("*").execute()
     reports = response.data if response.data else []
-    return templates.TemplateResponse("map.html", {"request": request, "reports": reports})
+    return templates.TemplateResponse("map.html", {"request": request, "reports": reports, "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")})
 #แก้ 6
