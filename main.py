@@ -157,7 +157,8 @@ async def show_results(
     vehicle_type: str = "",
     brand: str = "",
     model: str = "",
-    date_lost: str = "",
+    date_lost_from: str = "",
+    date_lost_to: str = "",
     reporter: str = "",
     color: str = "",
     plate_number: str = "",
@@ -176,8 +177,11 @@ async def show_results(
         filter_parts.append(f"brand=ilike.*{brand}*")
     if model:
         filter_parts.append(f"model=ilike.*{model}*")
-    if date_lost:
-        filter_parts.append(f"date_lost=eq.{date_lost}")
+    filter_parts.append("date_lost=not.is.null")
+    if date_lost_from:
+        filter_parts.append(f"date_lost=gte.{date_lost_from}")
+    if date_lost_to:
+        filter_parts.append(f"date_lost=lte.{date_lost_to}")
     if reporter:
         filter_parts.append(f"reporter=ilike.*{reporter}*")
     if color:
@@ -233,4 +237,4 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
-#แก้ 3
+#แก้ 4
