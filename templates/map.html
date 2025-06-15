@@ -54,16 +54,16 @@
       const reports = {{ reports | tojson }};
       console.log("Reports loaded:", reports);
       for (const item of reports) {
-        const lat = parseFloat(item.lat);
-        const lng = parseFloat(item.lng);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          const marker = new google.maps.Marker({
-            position: { lat, lng },
-            map,
-            title: item.brand + ' - ' + item.model
-          });
-        }
-      }
+  const lat = parseFloat(item.lat);
+  const lng = parseFloat(item.lng);
+  if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+    new google.maps.Marker({
+      position: { lat, lng },
+      map,
+      title: `${item.brand || ''} ${item.model || ''}`
+    });
+  }
+}
     }
   </script>
   <script async defer

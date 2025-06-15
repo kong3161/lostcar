@@ -11,6 +11,7 @@ from math import ceil
 import cloudinary
 import cloudinary.uploader
 from dotenv import load_dotenv
+from supabase import create_client
 load_dotenv()
 
 app = FastAPI()
@@ -255,12 +256,23 @@ async def show_results(
         "total_pages": total_pages
     })
 # เพิ่ม endpoint สำหรับหน้าแผนที่
+from supabase import create_client
+
 @app.get("/map", response_class=HTMLResponse)
 async def show_map(request: Request):
-    from supabase import create_client
-
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    response = supabase.table("reports").select("*").execute()
+
+    response = supabase.table("reports") \
+        .select("*") \
+        .neq("lat", "0") \
+        .neq("lng", "0") \
+        .execute()
+
     reports = response.data if response.data else []
-    return templates.TemplateResponse("map.html", {"request": request, "reports": reports, "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")})
+
+    return templates.TemplateResponse("map.html", {
+        "request": request,
+        "reports": reports,
+        "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
+    })
 #แก้ 6
