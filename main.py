@@ -254,4 +254,13 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
+# เพิ่ม endpoint สำหรับหน้าแผนที่
+@app.get("/map", response_class=HTMLResponse)
+async def show_map(request: Request):
+    from supabase import create_client
+
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    response = supabase.table("reports").select("*").execute()
+    reports = response.data if response.data else []
+    return templates.TemplateResponse("map.html", {"request": request, "reports": reports})
 #แก้ 6
