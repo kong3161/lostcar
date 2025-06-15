@@ -177,11 +177,24 @@ async def show_results(
         filter_parts.append(f"brand=ilike.*{brand}*")
     if model:
         filter_parts.append(f"model=ilike.*{model}*")
-    filter_parts.append("date_lost=not.is.null")
-    if date_lost_from:
-        filter_parts.append(f"date_lost=gte.{date_lost_from}")
-    if date_lost_to:
-        filter_parts.append(f"date_lost=lte.{date_lost_to}")
+
+    from datetime import datetime
+    if date_lost_from or date_lost_to:
+        filter_parts.append("date_lost=not.is.null")
+        try:
+            if date_lost_from and date_lost_to:
+                from_date = datetime.fromisoformat(date_lost_from)
+                to_date = datetime.fromisoformat(date_lost_to)
+                if from_date <= to_date:
+                    filter_parts.append(f"date_lost=gte.{date_lost_from}")
+                    filter_parts.append(f"date_lost=lte.{date_lost_to}")
+            elif date_lost_from:
+                filter_parts.append(f"date_lost=gte.{date_lost_from}")
+            elif date_lost_to:
+                filter_parts.append(f"date_lost=lte.{date_lost_to}")
+        except ValueError:
+            pass
+
     if reporter:
         filter_parts.append(f"reporter=ilike.*{reporter}*")
     if color:
@@ -237,4 +250,4 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
-#แก้ 4
+#แก้ 5
