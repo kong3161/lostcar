@@ -38,10 +38,11 @@
         <iframe src="https://maps.google.com/maps?q={{ item.lat }},{{ item.lng }}&z=15&output=embed"></iframe>
         {% endif %}
         {% if item.files %}
-          <button onclick="toggleImages('img-{{ item.id }}')" class="btn">📷 ดูรูปภาพ</button>
+          <button onclick="toggleImages('img-{{ item.id }}', this)" class="btn">📷 ดูรูปภาพ</button>
           <div id="img-{{ item.id }}" style="display:none; margin-top:1rem;">
             {% for file in item.files %}
-              <img src="{{ file.file_url }}" width="300" style="margin-bottom: 1rem;"><br>
+              <img src="{{ file.file_url }}" width="300" style="margin-bottom: 0.5rem;"><br>
+              <a href="{{ file.file_url }}" target="_blank" class="btn" style="margin-bottom: 1rem;">🔍 ดูภาพเต็มขนาด</a><br>
             {% endfor %}
           </div>
         {% endif %}
@@ -80,13 +81,11 @@
     {% endif %}
   </div>
   <script>
-    function toggleImages(id) {
+    function toggleImages(id, btn) {
       const el = document.getElementById(id);
-      if (el.style.display === "none") {
-        el.style.display = "block";
-      } else {
-        el.style.display = "none";
-      }
+      const isHidden = el.style.display === "none" || el.style.display === "";
+      el.style.display = isHidden ? "block" : "none";
+      btn.innerText = isHidden ? "📕 ซ่อนรูปภาพ" : "📷 ดูรูปภาพ";
     }
   </script>
 </body>
