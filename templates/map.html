@@ -48,22 +48,42 @@
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
         zoom: 7,
-        center: { lat: 13.987004, lng: 100.614520 }, // สภ.ประตูน้ำจุฬาลงกรณ์
+        center: { lat: 13.987004, lng: 100.614520 },
       });
 
       const reports = {{ reports | tojson }};
       console.log("Reports loaded:", reports);
+
       for (const item of reports) {
-  const lat = parseFloat(item.lat);
-  const lng = parseFloat(item.lng);
-  if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-    new google.maps.Marker({
-      position: { lat, lng },
-      map,
-      title: `${item.brand || ''} ${item.model || ''}`
-    });
-  }
-}
+        const lat = parseFloat(item.lat);
+        const lng = parseFloat(item.lng);
+
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+          const marker = new google.maps.Marker({
+            position: { lat, lng },
+            map,
+            title: `${item.brand || ''} ${item.model || ''}`
+          });
+
+          const infoContent = `
+            <div style="color:black">
+              <strong>ประเภทรถ:</strong> ${item.vehicle_type || '-'}<br>
+              <strong>ยี่ห้อ:</strong> ${item.brand || '-'}<br>
+              <strong>รุ่น:</strong> ${item.model || '-'}<br>
+              <strong>สี:</strong> ${item.color || '-'}<br>
+              <strong>วันที่หาย:</strong> ${item.date_lost || '-'}<br>
+            </div>
+          `;
+
+          const infoWindow = new google.maps.InfoWindow({
+            content: infoContent
+          });
+
+          marker.addListener("click", () => {
+            infoWindow.open(map, marker);
+          });
+        }
+      }
     }
   </script>
   <script async defer
