@@ -112,15 +112,6 @@
       <a href="/dashboard" class="btn">📊 แดชบอร์ด</a>
     </div>
 
-    {% if debug_url and debug_status and debug_raw %}
-    <div class="debug">
-      🔧 <strong>Debug (สำหรับผู้พัฒนาเท่านั้น)</strong><br>
-      <em>หมายเหตุ: ส่วนนี้แสดงข้อมูลสำหรับตรวจสอบการทำงานของระบบ</em><br><br>
-      <strong>URL:</strong> {{ debug_url }}<br>
-      <strong>Status:</strong> {{ debug_status }}<br>
-      <strong>Response:</strong><br>{{ debug_raw }}
-    </div>
-    {% endif %}
   </div>
   <script>
     function toggleImages(id, btn) {
