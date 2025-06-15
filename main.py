@@ -12,7 +12,6 @@ import cloudinary
 import cloudinary.uploader
 from dotenv import load_dotenv
 from supabase import create_client
-from datetime import datetime
 load_dotenv()
 
 app = FastAPI()
@@ -266,38 +265,17 @@ from datetime import datetime
 async def show_map(request: Request, from_: str = None, to: str = None):
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    query = supabase.table("reports") \
-        .select("*") \
-        .neq("lat", "0") \
-        .neq("lng", "0") \
-        .neq("date_lost", None)
+    query = supabase.table("reports").select("*").neq("lat", "0").neq("lng", "0")
 
-    valid_from = False
-    valid_to = False
-    if from_ and from_.lower() != "none":
-        try:
-            datetime.strptime(from_, "%Y-%m-%d")
-            query = query.gte("date_lost", from_)
-            valid_from = True
-        except ValueError:
-            valid_from = False
-    if to and to.lower() != "none":
-        try:
-            datetime.strptime(to, "%Y-%m-%d")
-            query = query.lte("date_lost", to)
-            valid_to = True
-        except ValueError:
-            valid_to = False
-    # Only execute the query if input dates are valid (or not provided)
-    if ((not from_ or from_.lower() == "none") or valid_from) and ((not to or to.lower() == "none") or valid_to):
-        response = query.execute()
-        reports = response.data if response.data else []
-    else:
-        reports = []
+    if from_ and to:
+        query = query.gte("date_lost", from_).lte("date_lost", to)
+
+    response = query.execute()
+    reports = response.data if response.data else []
 
     return templates.TemplateResponse("map.html", {
         "request": request,
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
-#แก้ 8
+#แก้ 6
