@@ -44,7 +44,16 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
     .btn.disabled { background: #999; pointer-events: none; }
-    .debug { background: #f8f9fa; padding: 1rem; margin-top: 2rem; font-size: 0.85rem; border-radius: 8px; white-space: pre-wrap; }
+    .debug {
+      background: #f8f9fa;
+      padding: 1rem;
+      margin-top: 2rem;
+      font-size: 0.75rem;  /* Smaller font size */
+      border-radius: 8px;
+      white-space: pre-wrap;
+      color: #333;
+      border: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
@@ -105,7 +114,8 @@
 
     {% if debug_url and debug_status and debug_raw %}
     <div class="debug">
-      🔎 <strong>Debug</strong><br>
+      🔧 <strong>Debug (สำหรับผู้พัฒนาเท่านั้น)</strong><br>
+      <em>หมายเหตุ: ส่วนนี้แสดงข้อมูลสำหรับตรวจสอบการทำงานของระบบ</em><br><br>
       <strong>URL:</strong> {{ debug_url }}<br>
       <strong>Status:</strong> {{ debug_status }}<br>
       <strong>Response:</strong><br>{{ debug_raw }}
