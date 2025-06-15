@@ -258,16 +258,19 @@ async def show_results(
 # เพิ่ม endpoint สำหรับหน้าแผนที่
 from supabase import create_client
 
+from fastapi import Request
+from datetime import datetime
+
 @app.get("/map", response_class=HTMLResponse)
-async def show_map(request: Request):
+async def show_map(request: Request, from_: str = None, to: str = None):
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    response = supabase.table("reports") \
-        .select("*") \
-        .neq("lat", "0") \
-        .neq("lng", "0") \
-        .execute()
+    query = supabase.table("reports").select("*").neq("lat", "0").neq("lng", "0")
 
+    if from_ and to:
+        query = query.gte("date_lost", from_).lte("date_lost", to)
+
+    response = query.execute()
     reports = response.data if response.data else []
 
     return templates.TemplateResponse("map.html", {

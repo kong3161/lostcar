@@ -36,6 +36,13 @@
 </head>
 <body>
   <h2>📍 แผนที่แสดงจุดรถหาย</h2>
+  <form method="get" action="/map" style="text-align:center; margin: 1rem;">
+    <label for="from">จากวันที่:</label>
+    <input type="date" name="from" id="from" required>
+    <label for="to">ถึงวันที่:</label>
+    <input type="date" name="to" id="to" required>
+    <button type="submit">🔍 ดูแผนที่ช่วงวัน</button>
+  </form>
   <div id="map"></div>
   <div class="btn-group">
     <a class="btn" href="/">📋 แจ้งรถหาย</a>
