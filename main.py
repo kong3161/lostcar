@@ -272,14 +272,14 @@ async def show_map(request: Request, from_: str = None, to: str = None):
         .neq("lng", "0") \
         .neq("date_lost", None)
 
-    if from_:
+    if from_ is not None and from_.strip():
         try:
             datetime.strptime(from_, "%Y-%m-%d")
             query = query.gte("date_lost", from_)
         except ValueError:
             pass
 
-    if to:
+    if to is not None and to.strip():
         try:
             datetime.strptime(to, "%Y-%m-%d")
             query = query.lte("date_lost", to)
