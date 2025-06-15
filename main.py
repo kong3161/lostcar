@@ -272,8 +272,10 @@ async def show_map(request: Request, from_: str = None, to: str = None):
         .neq("lng", "0") \
         .neq("date_lost", None)
 
-    if from_ and to:
-        query = query.gte("date_lost", from_).lte("date_lost", to)
+    if from_:
+        query = query.gte("date_lost", from_)
+    if to:
+        query = query.lte("date_lost", to)
 
     response = query.execute()
     reports = response.data if response.data else []
