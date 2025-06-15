@@ -48,6 +48,7 @@ async def submit(
 ):
     from supabase import create_client
     from uuid import uuid4
+    from fastapi.responses import RedirectResponse
 
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_ANON_KEY")
@@ -96,13 +97,11 @@ async def submit(
 
         report_id = result.data[0]["id"]
 
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "message": "✅ บันทึกข้อมูลเรียบร้อยแล้ว"
-        })
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/?success=true", status_code=303)
 
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return RedirectResponse(url="/?success=false", status_code=303)
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):

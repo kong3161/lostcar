@@ -175,5 +175,14 @@
         </div>
     </div>
 
+</script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("success") === "true") {
+    alert("✅ ส่งรายงานสำเร็จ");
+  } else if (params.get("success") === "false") {
+    alert("❌ ส่งรายงานไม่สำเร็จ กรุณาลองอีกครั้ง");
+  }
+</script>
 </body>
 </html>
