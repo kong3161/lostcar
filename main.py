@@ -181,19 +181,23 @@ async def show_results(
     from datetime import datetime
     if date_lost_from or date_lost_to:
         filter_parts.append("date_lost=not.is.null")
-        try:
-            if date_lost_from and date_lost_to:
+        if date_lost_from and date_lost_to:
+            try:
                 from_date = datetime.fromisoformat(date_lost_from)
                 to_date = datetime.fromisoformat(date_lost_to)
                 if from_date <= to_date:
                     filter_parts.append(f"date_lost=gte.{date_lost_from}")
                     filter_parts.append(f"date_lost=lte.{date_lost_to}")
-            elif date_lost_from:
-                filter_parts.append(f"date_lost=gte.{date_lost_from}")
-            elif date_lost_to:
-                filter_parts.append(f"date_lost=lte.{date_lost_to}")
-        except ValueError:
-            pass
+                else:
+                    # สลับลำดับหากผู้ใช้กรอกกลับด้าน
+                    filter_parts.append(f"date_lost=gte.{date_lost_to}")
+                    filter_parts.append(f"date_lost=lte.{date_lost_from}")
+            except ValueError:
+                pass
+        elif date_lost_from:
+            filter_parts.append(f"date_lost=gte.{date_lost_from}")
+        elif date_lost_to:
+            filter_parts.append(f"date_lost=lte.{date_lost_to}")
 
     if reporter:
         filter_parts.append(f"reporter=ilike.*{reporter}*")
@@ -250,4 +254,4 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
-#แก้ 5
+#แก้ 6
