@@ -262,13 +262,22 @@ from fastapi import Request
 from datetime import datetime
 
 @app.get("/map", response_class=HTMLResponse)
-async def show_map(request: Request, from_: str = None, to: str = None):
+async def show_map(request: Request, from_date: str = None, to_date: str = None):
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
     query = supabase.table("reports").select("*").neq("lat", "0").neq("lng", "0")
 
-    if from_ and to:
-        query = query.gte("date_lost", from_).lte("date_lost", to)
+    if from_date and to_date:
+        try:
+            from_dt = datetime.strptime(from_date, "%Y-%m-%d").date()
+            to_dt = datetime.strptime(to_date, "%Y-%m-%d").date()
+
+            if from_dt > to_dt:
+                from_dt, to_dt = to_dt, from_dt
+
+            query = query.gte("date_lost", from_dt.isoformat()).lte("date_lost", to_dt.isoformat())
+        except ValueError:
+            pass  # ถ้าผู้ใช้กรอกวันที่ผิดฟอร์แมต ให้แสดงทั้งหมด
 
     response = query.execute()
     reports = response.data if response.data else []
@@ -278,4 +287,3 @@ async def show_map(request: Request, from_: str = None, to: str = None):
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
-#แก้ 6
