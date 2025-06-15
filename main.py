@@ -272,26 +272,32 @@ async def show_map(request: Request, from_: str = None, to: str = None):
         .neq("lng", "0") \
         .neq("date_lost", None)
 
-    if from_ is not None and from_.strip():
+    valid_from = False
+    valid_to = False
+    if from_ and from_.lower() != "none":
         try:
             datetime.strptime(from_, "%Y-%m-%d")
             query = query.gte("date_lost", from_)
+            valid_from = True
         except ValueError:
-            pass
-
-    if to is not None and to.strip():
+            valid_from = False
+    if to and to.lower() != "none":
         try:
             datetime.strptime(to, "%Y-%m-%d")
             query = query.lte("date_lost", to)
+            valid_to = True
         except ValueError:
-            pass
-
-    response = query.execute()
-    reports = response.data if response.data else []
+            valid_to = False
+    # Only execute the query if input dates are valid (or not provided)
+    if ((not from_ or from_.lower() == "none") or valid_from) and ((not to or to.lower() == "none") or valid_to):
+        response = query.execute()
+        reports = response.data if response.data else []
+    else:
+        reports = []
 
     return templates.TemplateResponse("map.html", {
         "request": request,
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
-#แก้ 7
+#แก้ 8
