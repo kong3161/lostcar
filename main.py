@@ -104,6 +104,9 @@ async def submit(
         return RedirectResponse(url="/?success=true", status_code=303)
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print("❌ เกิดข้อผิดพลาด:", e)
         return RedirectResponse(url="/?success=false", status_code=303)
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -302,3 +305,4 @@ async def show_map(request: Request, from_date: str = None, to_date: str = None)
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
+#แก้ไข
