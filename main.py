@@ -23,7 +23,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
 @app.get("/submit", response_class=HTMLResponse)
 async def form_page(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("home.html", {"request": request})
 
 @app.post("/submit")
 async def submit(
@@ -304,4 +304,4 @@ async def show_map(request: Request, from_date: str = None, to_date: str = None)
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
-#แก้ไข 2
+#แก้ไข 3
