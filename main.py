@@ -27,7 +27,7 @@ async def home(request: Request):
 
 @app.get("/submit", response_class=HTMLResponse)
 async def form_page(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/submit")
 async def submit(
