@@ -21,8 +21,8 @@ templates = Jinja2Templates(directory="templates")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
-@app.get("/", response_class=HTMLResponse)
-async def read_form(request: Request):
+@app.get("/submit", response_class=HTMLResponse)
+async def form_page(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/submit")
@@ -66,10 +66,9 @@ async def submit(
                 api_secret=os.getenv("CLOUDINARY_API_SECRET")
             )
             for file in files:
-                for file in files:
-                    if file.filename:  # ✔ แนบไฟล์มาจริง
-                        result = cloudinary.uploader.upload(file.file, resource_type="image")
-                        uploaded_urls.append(result["secure_url"])
+                if file.filename:  # ✔ แนบไฟล์มาจริง
+                    result = cloudinary.uploader.upload(file.file, resource_type="image")
+                    uploaded_urls.append(result["secure_url"])
 
         data = {
             "vehicle_type": vehicle_type,
