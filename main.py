@@ -66,8 +66,7 @@ async def submit(
                 api_secret=os.getenv("CLOUDINARY_API_SECRET")
             )
             for file in files:
-                contents = await file.read()
-                result = cloudinary.uploader.upload(contents, resource_type="image")
+                result = cloudinary.uploader.upload(file.file, resource_type="image")
                 public_url = result["secure_url"]
                 uploaded_urls.append(public_url)
 
@@ -305,4 +304,4 @@ async def show_map(request: Request, from_date: str = None, to_date: str = None)
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
-#แก้ไข
+#แก้ไข 2
