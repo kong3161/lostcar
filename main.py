@@ -21,6 +21,10 @@ templates = Jinja2Templates(directory="templates")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
 @app.get("/submit", response_class=HTMLResponse)
 async def form_page(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
