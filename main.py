@@ -66,9 +66,10 @@ async def submit(
                 api_secret=os.getenv("CLOUDINARY_API_SECRET")
             )
             for file in files:
-                result = cloudinary.uploader.upload(file.file, resource_type="image")
-                public_url = result["secure_url"]
-                uploaded_urls.append(public_url)
+                for file in files:
+                    if file.filename:  # ✔ แนบไฟล์มาจริง
+                        result = cloudinary.uploader.upload(file.file, resource_type="image")
+                        uploaded_urls.append(result["secure_url"])
 
         data = {
             "vehicle_type": vehicle_type,
