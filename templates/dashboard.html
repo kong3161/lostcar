@@ -47,6 +47,25 @@
 <body>
   <div class="container">
     <h1>📊 แดชบอร์ดสถิติรถหาย</h1>
+    <div class="chart-block">
+      <h3>📍 สถิติตามเขตตรวจ</h3>
+      <table border="1" cellpadding="8" cellspacing="0" style="width:100%; background:#fff; border-radius:8px; text-align:center;">
+        <thead style="background-color:#eee;">
+          <tr>
+            <th>เขตตรวจ</th>
+            <th>จำนวน</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for zone, count in zone_counts.items() %}
+          <tr>
+            <td>เขตตรวจ {{ zone }}</td>
+            <td>{{ count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
     <div class="chart-block" id="model-charts"></div>
     <div class="chart-block">
       <h3>🕒 ช่วงเวลาที่ได้รับแจ้งหาย</h3>

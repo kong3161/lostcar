@@ -41,6 +41,7 @@ async def submit(
     time_event: str = Form(""),
     time_reported: str = Form(""),
     location: str = Form(""),
+    zone: str = Form(...),
     lat: str = Form(""),
     lng: str = Form(""),
     reporter: str = Form(""),
@@ -84,6 +85,7 @@ async def submit(
             "time_event": time_event,
             "time_reported": time_reported,
             "location": location,
+            "zone": zone,
             "lat": lat,
             "lng": lng,
             "reporter": reporter,
@@ -106,7 +108,20 @@ async def submit(
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    result = supabase.table("reports").select("zone").execute()
+    rows = result.data if result.data else []
+
+    zone_counts = {}
+    for row in rows:
+        z = row.get("zone")
+        if z:
+            zone_counts[z] = zone_counts.get(z, 0) + 1
+
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "zone_counts": zone_counts
+    })
 @app.get("/dashboard-data")
 async def dashboard_data():
     headers = {
