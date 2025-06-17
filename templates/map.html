@@ -121,7 +121,12 @@
           const marker = new google.maps.Marker({
             position: { lat, lng },
             map,
-            title: `${item.brand || ''} ${item.model || ''}`
+            title: `${item.brand || ''} ${item.model || ''}`,
+            icon: {
+              url: "/static/P1.png",
+              scaledSize: new google.maps.Size(42, 42),
+              anchor: new google.maps.Point(21, 42)
+            }
           });
 
           const infoContent = `
