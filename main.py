@@ -54,7 +54,6 @@ async def submit(
 ):
     from supabase import create_client
     from uuid import uuid4
-    from fastapi.responses import RedirectResponse
 
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_ANON_KEY")
@@ -103,8 +102,7 @@ async def submit(
 
         report_id = result.data[0]["id"]
 
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url="/?success=true", status_code=303)
+        return templates.TemplateResponse("index.html", {"request": request, "success": True})
 
     except Exception as e:
         import traceback
