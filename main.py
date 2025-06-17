@@ -23,7 +23,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/submit", response_class=HTMLResponse)
 async def form_page(request: Request):
