@@ -192,5 +192,10 @@
   alert("✅ ส่งรายงานสำเร็จ");
 </script>
 {% endif %}
+{% if error %}
+<script>
+  alert("❌ ส่งรายงานไม่สำเร็จ กรุณาลองอีกครั้ง");
+</script>
+{% endif %}
 </body>
 </html>

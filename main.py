@@ -108,7 +108,7 @@ async def submit(
         import traceback
         traceback.print_exc()
         print("❌ เกิดข้อผิดพลาด:", e)
-        return RedirectResponse(url="/?success=false", status_code=303)
+        return templates.TemplateResponse("index.html", {"request": request, "error": True})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
