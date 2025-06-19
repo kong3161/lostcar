@@ -291,6 +291,7 @@ async def show_results(
     plate_number: str = "",
     engine_number: str = "",
     chassis_number: str = "",
+    zone: str = "",
 ):
     limit = 5
     offset = (page - 1) * limit
@@ -333,6 +334,8 @@ async def show_results(
         filter_parts.append(f"engine_number=ilike.*{engine_number}*")
     if chassis_number:
         filter_parts.append(f"chassis_number=ilike.*{chassis_number}*")
+    if zone:
+        filter_parts.append(f"zone=ilike.*{zone}*")
 
     filter_query = "&".join(filter_parts)
     base_url = f"{SUPABASE_URL}/rest/v1/reports"
@@ -376,7 +379,8 @@ async def show_results(
         "debug_status": response.status_code,
         "debug_raw": response.text,
         "page": page,
-        "total_pages": total_pages
+        "total_pages": total_pages,
+        "zone": zone
     })
 
 # เพิ่ม endpoint สำหรับหน้าแผนที่
