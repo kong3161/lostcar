@@ -191,11 +191,19 @@ async def dashboard(request: Request):
     result = query.execute()
     rows = result.data if result.data else []
 
+    zone_mapping = {
+        "1": "เขตตรวจที่ 1",
+        "2": "เขตตรวจที่ 2",
+        "3": "เขตตรวจที่ 3",
+        "4": "เขตตรวจที่ 4"
+    }
+
     zone_counts = {}
     for row in rows:
-        z = row.get("zone")
-        if z:
-            zone_counts[z] = zone_counts.get(z, 0) + 1
+        raw_zone = str(row.get("zone")).strip()
+        name = zone_mapping.get(raw_zone)
+        if name:
+            zone_counts[name] = zone_counts.get(name, 0) + 1
 
     all_zones = ["เขตตรวจที่ 1", "เขตตรวจที่ 2", "เขตตรวจที่ 3", "เขตตรวจที่ 4"]
     ordered_counts = {zone: zone_counts.get(zone, 0) for zone in all_zones}
