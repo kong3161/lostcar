@@ -197,9 +197,12 @@ async def dashboard(request: Request):
         if z:
             zone_counts[z] = zone_counts.get(z, 0) + 1
 
+    all_zones = ["เขตตรวจที่ 1", "เขตตรวจที่ 2", "เขตตรวจที่ 3", "เขตตรวจที่ 4"]
+    ordered_counts = {zone: zone_counts.get(zone, 0) for zone in all_zones}
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "zone_counts": zone_counts,
+        "zone_counts": ordered_counts,
         "query_params": request.query_params
     })
 
