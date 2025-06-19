@@ -114,6 +114,24 @@
         center: { lat: 13.987004, lng: 100.614520 },
       });
 
+      const polygon = new google.maps.Polygon({
+        paths: [
+          { lat: 13.9956256, lng: 100.6016595 },
+          { lat: 13.9659496, lng: 100.6054065 },
+          { lat: 13.9794617, lng: 100.6632403 },
+          { lat: 14.0096853, lng: 100.6637291 },
+          { lat: 13.9956256, lng: 100.6016595 }
+        ],
+        strokeColor: "#FF5722",
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: "#FF5722",
+        fillOpacity: 0.15,
+        zIndex: 0
+      });
+
+      polygon.setMap(map);
+
       const reports = {{ reports | tojson }};
       console.log("Reports loaded:", reports);
 
