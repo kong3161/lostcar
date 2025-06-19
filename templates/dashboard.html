@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -200,7 +199,15 @@
       });
     }
 
-    fetchData().then(data => {
+    const fromDate = new URLSearchParams(window.location.search).get("from_date");
+    const toDate = new URLSearchParams(window.location.search).get("to_date");
+    let url = "/dashboard-data";
+    const params = new URLSearchParams();
+    if (fromDate) params.append("from_date", fromDate);
+    if (toDate) params.append("to_date", toDate);
+    if ([...params].length) url += `?${params.toString()}`;
+
+    fetch(url).then(res => res.json()).then(data => {
       const container = document.getElementById("model-charts");
       const modelsByType = data.models_by_type;
       const timeStats = data.time_ranges;

@@ -181,7 +181,7 @@ async def dashboard(request: Request):
     to_date = request.query_params.get("to_date")
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    query = supabase.table("reports").select("zone, date_lost")
+    query = supabase.table("reports").select("*")
 
     if from_date:
         query = query.gte("date_lost", from_date)
