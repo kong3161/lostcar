@@ -1,3 +1,5 @@
+from fastapi import FastAPI
+app = FastAPI()
 # -------------------- เพิ่ม endpoint ฟอร์มและ export excel --------------------
 from fastapi.responses import StreamingResponse
 from io import BytesIO
@@ -56,7 +58,7 @@ async def export_excel(from_date: str, to_date: str):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename=รายงานรถหาย_{from_date}_ถึง_{to_date}.xlsx"}
     )
-from fastapi import FastAPI, Form, UploadFile, File, Request
+from fastapi import Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -72,7 +74,6 @@ from dotenv import load_dotenv
 from supabase import create_client
 load_dotenv()
 
-app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -364,4 +365,3 @@ async def show_map(request: Request, from_date: str = None, to_date: str = None)
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
-#แก้ไข 3
