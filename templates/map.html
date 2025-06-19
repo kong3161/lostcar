@@ -82,7 +82,9 @@
   </style>
 </head>
 <body>
-  <h2>📍 แผนที่แสดงจุดรถหาย</h2>
+  <div style="text-align: center; padding: 1rem; background: white; color: black; border: 3px solid #ffeb3b; border-radius: 10px; margin: 1rem;">
+    <h2 style="margin: 0;">📍 แผนที่แสดงจุดรถหาย</h2>
+  </div>
   <p style="text-align: center; margin-top: 0; color: #ffeb3b; font-weight: bold;">
     ⚠️ กรณีหายสถานที่เดียวกัน หมุดจะมีแค่อันเดียวเท่านั้น
   </p>
@@ -166,7 +168,7 @@
           }
         });
 
-        let infoContent = '<div style="color:black">';
+        let infoContent = '<div style="color:black; font-size: 1.05rem; font-weight: bold;">';
         for (const item of itemsAtLocation) {
           infoContent += `
             <hr>
