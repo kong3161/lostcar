@@ -335,7 +335,7 @@ async def show_results(
     if chassis_number:
         filter_parts.append(f"chassis_number=ilike.*{chassis_number}*")
     if zone:
-        filter_parts.append(f"zone=ilike.*{zone}*")
+        filter_parts.append(f"zone=eq.{zone}")
 
     filter_query = "&".join(filter_parts)
     base_url = f"{SUPABASE_URL}/rest/v1/reports"
