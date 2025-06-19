@@ -3,7 +3,7 @@ import json
 from io import BytesIO
 from math import ceil
 from datetime import datetime
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 
 import httpx
 from dotenv import load_dotenv
@@ -75,10 +75,16 @@ async def export_excel(from_date: str, to_date: str):
     wb.save(output)
     output.seek(0)
 
+    filename = f"รายงานรถหาย_{from_date}_ถึง_{to_date}.xlsx"
+    quoted = quote(filename)
+    headers = {
+        "Content-Disposition": f"attachment; filename*=UTF-8''{quoted}"
+    }
+
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename=รายงานรถหาย_{from_date}_ถึง_{to_date}.xlsx"}
+        headers=headers
     )
 
 @app.get("/", response_class=HTMLResponse)
