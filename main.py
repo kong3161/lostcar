@@ -55,7 +55,7 @@ async def export_excel(from_date: str, to_date: str):
     wb = Workbook()
     ws = wb.active
     ws.title = "รายงานรถหาย"
-    headers = ["ID", "ประเภทรถ", "ยี่ห้อ", "รุ่น", "สี", "วันที่หาย", "ผู้แจ้ง", "ละติจูด", "ลองจิจูด"]
+    headers = ["ID", "ประเภทรถ", "ยี่ห้อ", "รุ่น", "สี", "วันที่หาย", "ผู้แจ้ง", "ละติจูด", "ลองจิจูด" , "รายละเอียด" , "สถานที่หาย" , "เขต"]
     ws.append(headers)
 
     for row in data:
@@ -69,6 +69,9 @@ async def export_excel(from_date: str, to_date: str):
             row.get("reporter"),
             row.get("lat"),
             row.get("lng"),
+            row.get("details"),
+            row.get("location"),
+            row.get("zone"),
         ])
 
     output = BytesIO()
@@ -77,14 +80,13 @@ async def export_excel(from_date: str, to_date: str):
 
     filename = f"รายงานรถหาย_{from_date}_ถึง_{to_date}.xlsx"
     quoted = quote(filename)
-    headers = {
-        "Content-Disposition": f"attachment; filename*=UTF-8''{quoted}"
-    }
 
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers=headers
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{quoted}"
+        }
     )
 
 @app.get("/", response_class=HTMLResponse)
