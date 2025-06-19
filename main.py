@@ -220,7 +220,7 @@ async def dashboard_data(from_date: str = None, to_date: str = None):
         filter_parts.append(f"date_lost=lte.{to_date}")
     filter_query = "&".join(filter_parts)
 
-    url = f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported,date_lost"
+    url = f"{SUPABASE_URL}/rest/v1/reports?select=*"
     if filter_query:
         url += f"&{filter_query}"
 
