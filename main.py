@@ -1,9 +1,33 @@
-from fastapi import FastAPI
-app = FastAPI()
-# -------------------- เพิ่ม endpoint ฟอร์มและ export excel --------------------
-from fastapi.responses import StreamingResponse
+import os
+import json
 from io import BytesIO
+from math import ceil
+from datetime import datetime
+from urllib.parse import urlencode
+
+import httpx
+from dotenv import load_dotenv
 from openpyxl import Workbook
+import cloudinary
+import cloudinary.uploader
+
+from fastapi import FastAPI, Form, UploadFile, File, Request
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from supabase import create_client
+
+load_dotenv()
+
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
+
+# -------------------- เพิ่ม endpoint ฟอร์มและ export excel --------------------
 # ฟอร์มเลือกช่วงวันที่สำหรับรายงาน
 @app.get("/report", response_class=HTMLResponse)
 async def report_form(request: Request):
@@ -12,8 +36,6 @@ async def report_form(request: Request):
 # สร้างไฟล์ Excel รายงานรถหายตามช่วงวันที่
 @app.get("/export")
 async def export_excel(from_date: str, to_date: str):
-    from datetime import datetime
-
     try:
         from_dt = datetime.fromisoformat(from_date).date()
         to_dt = datetime.fromisoformat(to_date).date()
@@ -58,27 +80,6 @@ async def export_excel(from_date: str, to_date: str):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename=รายงานรถหาย_{from_date}_ถึง_{to_date}.xlsx"}
     )
-from fastapi import Form, UploadFile, File, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-import os
-import httpx
-from datetime import datetime
-from urllib.parse import urlencode
-from math import ceil
-import cloudinary
-import cloudinary.uploader
-from dotenv import load_dotenv
-from supabase import create_client
-load_dotenv()
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -111,12 +112,9 @@ async def submit(
     details: str = Form(""),
     files: list[UploadFile] = File(None)
 ):
-    from supabase import create_client
     from uuid import uuid4
 
-    url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_ANON_KEY")
-    supabase = create_client(url, key)
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
     try:
         uploaded_urls = []
@@ -185,6 +183,7 @@ async def dashboard(request: Request):
         "request": request,
         "zone_counts": zone_counts
     })
+
 @app.get("/dashboard-data")
 async def dashboard_data():
     headers = {
@@ -224,7 +223,6 @@ async def dashboard_data():
         "time_ranges": time_ranges
     }
 
-
 @app.get("/search", response_class=HTMLResponse)
 async def search_page(request: Request):
     return templates.TemplateResponse("search.html", {"request": request})
@@ -244,8 +242,6 @@ async def show_results(
     engine_number: str = "",
     chassis_number: str = ""
 ):
-    import json
-
     limit = 5
     offset = (page - 1) * limit
 
@@ -257,7 +253,6 @@ async def show_results(
     if model:
         filter_parts.append(f"model=ilike.*{model}*")
 
-    from datetime import datetime
     if date_lost_from or date_lost_to:
         filter_parts.append("date_lost=not.is.null")
         if date_lost_from and date_lost_to:
@@ -333,12 +328,8 @@ async def show_results(
         "page": page,
         "total_pages": total_pages
     })
+
 # เพิ่ม endpoint สำหรับหน้าแผนที่
-from supabase import create_client
-
-from fastapi import Request
-from datetime import datetime
-
 @app.get("/map", response_class=HTMLResponse)
 async def show_map(request: Request, from_date: str = None, to_date: str = None):
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
