@@ -184,9 +184,18 @@ async def dashboard(request: Request):
     query = supabase.table("reports").select("*")
 
     if from_date:
-        query = query.gte("date_lost", from_date)
+        try:
+            from_dt = datetime.fromisoformat(from_date).date().isoformat()
+            query = query.gte("date_lost", from_dt)
+        except ValueError:
+            pass
+
     if to_date:
-        query = query.lte("date_lost", to_date)
+        try:
+            to_dt = datetime.fromisoformat(to_date).date().isoformat()
+            query = query.lte("date_lost", to_dt)
+        except ValueError:
+            pass
 
     result = query.execute()
     rows = result.data if result.data else []
@@ -281,7 +290,7 @@ async def show_results(
     color: str = "",
     plate_number: str = "",
     engine_number: str = "",
-    chassis_number: str = ""
+    chassis_number: str = "",
 ):
     limit = 5
     offset = (page - 1) * limit
