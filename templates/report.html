@@ -3,17 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <title>พิมพ์รายงานรถหาย</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h2>📄 พิมพ์รายงานรถหาย</h2>
-  <form action="/export" method="get">
-    <label for="from_date">จากวันที่:</label>
-    <input type="date" id="from_date" name="from_date" required>
-
-    <label for="to_date">ถึงวันที่:</label>
-    <input type="date" id="to_date" name="to_date" required>
-
-    <button type="submit">📥 ดาวน์โหลด Excel</button>
-  </form>
+<body class="bg-purple-50 text-gray-800 font-sans">
+  <div class="max-w-md mx-auto p-6 mt-10 bg-white shadow rounded-lg">
+    <h2 class="text-xl font-bold text-center mb-6">📄 พิมพ์รายงานรถหาย</h2>
+    <form action="/export" method="get" class="space-y-4">
+      <div>
+        <label for="from_date" class="block font-semibold">จากวันที่:</label>
+        <input type="date" id="from_date" name="from_date" required class="w-full border rounded px-3 py-2">
+      </div>
+      <div>
+        <label for="to_date" class="block font-semibold">ถึงวันที่:</label>
+        <input type="date" id="to_date" name="to_date" required class="w-full border rounded px-3 py-2">
+      </div>
+      <button type="submit" class="w-full bg-purple-700 text-white py-2 rounded hover:bg-purple-800">
+        📥 ดาวน์โหลด Excel
+      </button>
+    </form>
+  </div>
 </body>
 </html>
