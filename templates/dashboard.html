@@ -94,10 +94,10 @@
       '#60a5fa', '#a78bfa', '#f472b6', '#34d399'
     ];
 
-    async function fetchData() {
-      const res = await fetch("/dashboard-data");
-      return await res.json();
-    }
+    // async function fetchData() {
+    //   const res = await fetch("/dashboard-data");
+    //   return await res.json();
+    // }
 
     function createModelChart(container, typeName, labels, data) {
       const safeName = typeName.replace(/[^a-zA-Z0-9]/g, '') || `t${Math.random().toString(36).substring(2, 6)}`;

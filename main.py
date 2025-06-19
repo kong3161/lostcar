@@ -204,14 +204,25 @@ async def dashboard(request: Request):
     })
 
 @app.get("/dashboard-data")
-async def dashboard_data():
+async def dashboard_data(from_date: str = None, to_date: str = None):
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}"
     }
 
+    filter_parts = []
+    if from_date:
+        filter_parts.append(f"date_lost=gte.{from_date}")
+    if to_date:
+        filter_parts.append(f"date_lost=lte.{to_date}")
+    filter_query = "&".join(filter_parts)
+
+    url = f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported"
+    if filter_query:
+        url += f"&{filter_query}"
+
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{SUPABASE_URL}/rest/v1/reports?select=vehicle_type,model,time_reported", headers=headers)
+        response = await client.get(url, headers=headers)
 
     data = response.json()
 
