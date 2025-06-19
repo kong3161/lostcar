@@ -177,8 +177,18 @@ async def submit(
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
+    from_date = request.query_params.get("from_date")
+    to_date = request.query_params.get("to_date")
+
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    result = supabase.table("reports").select("zone").execute()
+    query = supabase.table("reports").select("zone, date_lost")
+
+    if from_date:
+        query = query.gte("date_lost", from_date)
+    if to_date:
+        query = query.lte("date_lost", to_date)
+
+    result = query.execute()
     rows = result.data if result.data else []
 
     zone_counts = {}
@@ -189,7 +199,8 @@ async def dashboard(request: Request):
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "zone_counts": zone_counts
+        "zone_counts": zone_counts,
+        "query_params": request.query_params
     })
 
 @app.get("/dashboard-data")
