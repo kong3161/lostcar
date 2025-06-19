@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>พิมพ์รายงานรถหาย</title>
+</head>
+<body>
+  <h2>📄 พิมพ์รายงานรถหาย</h2>
+  <form action="/export" method="get">
+    <label for="from_date">จากวันที่:</label>
+    <input type="date" id="from_date" name="from_date" required>
+
+    <label for="to_date">ถึงวันที่:</label>
+    <input type="date" id="to_date" name="to_date" required>
+
+    <button type="submit">📥 ดาวน์โหลด Excel</button>
+  </form>
+</body>
+</html>

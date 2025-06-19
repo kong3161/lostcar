@@ -1,3 +1,61 @@
+# -------------------- เพิ่ม endpoint ฟอร์มและ export excel --------------------
+from fastapi.responses import StreamingResponse
+from io import BytesIO
+from openpyxl import Workbook
+# ฟอร์มเลือกช่วงวันที่สำหรับรายงาน
+@app.get("/report", response_class=HTMLResponse)
+async def report_form(request: Request):
+    return templates.TemplateResponse("report.html", {"request": request})
+
+# สร้างไฟล์ Excel รายงานรถหายตามช่วงวันที่
+@app.get("/export")
+async def export_excel(from_date: str, to_date: str):
+    from datetime import datetime
+
+    try:
+        from_dt = datetime.fromisoformat(from_date).date()
+        to_dt = datetime.fromisoformat(to_date).date()
+        if from_dt > to_dt:
+            from_dt, to_dt = to_dt, from_dt
+    except ValueError:
+        return JSONResponse(status_code=400, content={"error": "รูปแบบวันที่ไม่ถูกต้อง"})
+
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    result = supabase.table("reports")\
+        .select("*")\
+        .gte("date_lost", from_dt.isoformat())\
+        .lte("date_lost", to_dt.isoformat())\
+        .execute()
+    data = result.data if result.data else []
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "รายงานรถหาย"
+    headers = ["ID", "ประเภทรถ", "ยี่ห้อ", "รุ่น", "สี", "วันที่หาย", "ผู้แจ้ง", "ละติจูด", "ลองจิจูด"]
+    ws.append(headers)
+
+    for row in data:
+        ws.append([
+            row.get("id"),
+            row.get("vehicle_type"),
+            row.get("brand"),
+            row.get("model"),
+            row.get("color"),
+            row.get("date_lost"),
+            row.get("reporter"),
+            row.get("lat"),
+            row.get("lng"),
+        ])
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=รายงานรถหาย_{from_date}_ถึง_{to_date}.xlsx"}
+    )
 from fastapi import FastAPI, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
