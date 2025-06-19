@@ -6,6 +6,17 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-purple-50 text-gray-800 font-sans">
+  <nav class="bg-gray-900 text-white px-4 py-3 shadow">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <span class="font-bold text-lg">🚓 ระบบรถหาย</span>
+      <div class="space-x-4">
+        <a href="/" class="hover:underline">🔙️ กลับหน้าแรก</a>
+        <a href="/search" class="hover:underline">🔍 ค้นหา</a>
+        <a href="/dashboard" class="hover:underline">📊 แดชบอร์ด</a>
+        <a href="/map" class="hover:underline">🗺️ ดูแผนที่</a>
+      </div>
+    </div>
+  </nav>
   <div class="max-w-md mx-auto p-6 mt-10 bg-white shadow rounded-lg">
     <h2 class="text-xl font-bold text-center mb-6">📄 พิมพ์รายงานรถหาย</h2>
     <form action="/export" method="get" class="space-y-4">
