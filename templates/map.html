@@ -83,6 +83,7 @@
 </head>
 <body>
   <h2>📍 แผนที่แสดงจุดรถหาย</h2>
+  <p style="text-align: center; margin-top: -1rem;">กรณีหายสถานที่เดียวกัน หมุดจะมีแค่อันเดียวเท่านั้น</p>
   <form method="get" action="/map" class="search-form">
     <div class="input-group">
       <label for="from_date">จากวันที่:</label>
@@ -114,41 +115,58 @@
       const reports = {{ reports | tojson }};
       console.log("Reports loaded:", reports);
 
+      // Group reports by lat/lng key
+      const markersMap = {};
+
       for (const item of reports) {
         const lat = parseFloat(item.lat);
         const lng = parseFloat(item.lng);
+        const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
 
         if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-          const marker = new google.maps.Marker({
-            position: { lat, lng },
-            map,
-            title: `${item.brand || ''} ${item.model || ''}`,
-            icon: {
-              url: "/static/P2.png",
-              scaledSize: new google.maps.Size(47, 47),
-              anchor: new google.maps.Point(23.5, 47)
-            }
-          });
-
-          const infoContent = `
-            <div style="color:black">
-              <strong>ประเภทรถ:</strong> ${item.vehicle_type || '-'}<br>
-              <strong>ยี่ห้อ:</strong> ${item.brand || '-'}<br>
-              <strong>รุ่น:</strong> ${item.model || '-'}<br>
-              <strong>สี:</strong> ${item.color || '-'}<br>
-              <strong>วันที่หาย:</strong> ${item.date_lost || '-'}<br>
-              <strong>เขตตรวจ:</strong> ${item.zone || '-'}<br>
-            </div>
-          `;
-
-          const infoWindow = new google.maps.InfoWindow({
-            content: infoContent
-          });
-
-          marker.addListener("click", () => {
-            infoWindow.open(map, marker);
-          });
+          if (!markersMap[key]) {
+            markersMap[key] = [];
+          }
+          markersMap[key].push(item);
         }
+      }
+
+      // Create one marker per unique location with combined info
+      for (const key in markersMap) {
+        const [lat, lng] = key.split(',').map(Number);
+        const itemsAtLocation = markersMap[key];
+
+        const marker = new google.maps.Marker({
+          position: { lat, lng },
+          map,
+          icon: {
+            url: "/static/P2.png",
+            scaledSize: new google.maps.Size(47, 47),
+            anchor: new google.maps.Point(23.5, 47)
+          }
+        });
+
+        let infoContent = '<div style="color:black">';
+        for (const item of itemsAtLocation) {
+          infoContent += `
+            <hr>
+            <strong>ประเภทรถ:</strong> ${item.vehicle_type || '-'}<br>
+            <strong>ยี่ห้อ:</strong> ${item.brand || '-'}<br>
+            <strong>รุ่น:</strong> ${item.model || '-'}<br>
+            <strong>สี:</strong> ${item.color || '-'}<br>
+            <strong>วันที่หาย:</strong> ${item.date_lost || '-'}<br>
+            <strong>เขตตรวจ:</strong> ${item.zone || '-'}<br>
+          `;
+        }
+        infoContent += '</div>';
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: infoContent
+        });
+
+        marker.addListener("click", () => {
+          infoWindow.open(map, marker);
+        });
       }
     }
   </script>
