@@ -345,7 +345,7 @@ async def show_results(
 
     filter_query = "&".join(filter_parts)
     base_url = f"{SUPABASE_URL}/rest/v1/reports"
-    url = f"{base_url}?{filter_query}&order=uploaded_at.desc&limit={limit}&offset={offset}" if filter_query else f"{base_url}?order=uploaded_at.desc&limit={limit}&offset={offset}"
+    url = f"{base_url}?{filter_query}&order=date_lost.desc&limit={limit}&offset={offset}" if filter_query else f"{base_url}?order=date_lost.desc&limit={limit}&offset={offset}"
     count_url = f"{base_url}?select=id&{filter_query}" if filter_query else f"{base_url}?select=id"
 
     headers = {
