@@ -288,7 +288,9 @@ async def show_results(
     date_lost_to: str = "",
     reporter: str = "",
     color: str = "",
+    plate_prefix: str = "",
     plate_number: str = "",
+    plate_province: str = "",
     engine_number: str = "",
     chassis_number: str = "",
     zone: str = "",
@@ -328,8 +330,12 @@ async def show_results(
         filter_parts.append(f"reporter=ilike.*{reporter}*")
     if color:
         filter_parts.append(f"color=ilike.*{color}*")
+    if plate_prefix:
+        filter_parts.append(f"plate_prefix=ilike.*{plate_prefix}*")
     if plate_number:
         filter_parts.append(f"plate_number=ilike.*{plate_number}*")
+    if plate_province:
+        filter_parts.append(f"plate_province=ilike.*{plate_province}*")
     if engine_number:
         filter_parts.append(f"engine_number=ilike.*{engine_number}*")
     if chassis_number:
@@ -380,7 +386,19 @@ async def show_results(
         "debug_raw": response.text,
         "page": page,
         "total_pages": total_pages,
-        "zone": zone
+        "zone": zone,
+        "vehicle_type": vehicle_type,
+        "brand": brand,
+        "model": model,
+        "date_lost_from": date_lost_from,
+        "date_lost_to": date_lost_to,
+        "reporter": reporter,
+        "color": color,
+        "plate_prefix": plate_prefix,
+        "plate_number": plate_number,
+        "plate_province": plate_province,
+        "engine_number": engine_number,
+        "chassis_number": chassis_number,
     })
 
 # เพิ่ม endpoint สำหรับหน้าแผนที่
