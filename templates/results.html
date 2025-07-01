@@ -87,7 +87,21 @@
           {% if p == page %}
             <span class="btn disabled">{{ p }}</span>
           {% else %}
-            <a class="btn" href="?page={{ p }}">{{ p }}</a>
+            <a class="btn" href="?page={{ p }}
+              {% if date_lost_from %}&date_lost_from={{ date_lost_from }}{% endif %}
+              {% if date_lost_to %}&date_lost_to={{ date_lost_to }}{% endif %}
+              {% if vehicle_type %}&vehicle_type={{ vehicle_type }}{% endif %}
+              {% if brand %}&brand={{ brand }}{% endif %}
+              {% if model %}&model={{ model }}{% endif %}
+              {% if reporter %}&reporter={{ reporter }}{% endif %}
+              {% if color %}&color={{ color }}{% endif %}
+              {% if plate_prefix %}&plate_prefix={{ plate_prefix }}{% endif %}
+              {% if plate_number %}&plate_number={{ plate_number }}{% endif %}
+              {% if plate_province %}&plate_province={{ plate_province }}{% endif %}
+              {% if engine_number %}&engine_number={{ engine_number }}{% endif %}
+              {% if chassis_number %}&chassis_number={{ chassis_number }}{% endif %}
+              {% if zone %}&zone={{ zone }}{% endif %}
+            ">{{ p }}</a>
           {% endif %}
         {% endfor %}
       </div>
