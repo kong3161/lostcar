@@ -378,6 +378,10 @@ async def show_results(
     total = len(count_response.json()) if count_response.status_code == 200 else 0
     total_pages = ceil(total / limit) if total > 0 else 1
 
+    query_params_no_page = request.query_params.multi_items()
+    query_params_filtered = [(k, v) for k, v in query_params_no_page if k != "page"]
+    query_string = "&".join(f"{k}={v}" for k, v in query_params_filtered)
+
     return templates.TemplateResponse("results.html", {
         "request": request,
         "items": items,
@@ -399,6 +403,7 @@ async def show_results(
         "plate_province": plate_province,
         "engine_number": engine_number,
         "chassis_number": chassis_number,
+        "query_string": query_string,
     })
 
 # เพิ่ม endpoint สำหรับหน้าแผนที่
