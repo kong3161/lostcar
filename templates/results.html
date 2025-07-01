@@ -87,7 +87,7 @@
           {% if p == page %}
             <span class="btn disabled">{{ p }}</span>
           {% else %}
-            <a class="btn" href="?{{ request.query_params.urlencode() | safe }}&page={{ p }}">{{ p }}</a>
+            <a class="btn" href="?{{ query_string }}&page={{ p }}">{{ p }}</a>
           {% endif %}
         {% endfor %}
       </div>
