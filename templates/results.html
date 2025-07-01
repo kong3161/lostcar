@@ -87,7 +87,7 @@
           {% if p == page %}
             <span class="btn disabled">{{ p }}</span>
           {% else %}
-            <a class="btn" href="?page={{ p }}
+            <a class="btn" href="{{ request.url.path }}?page={{ p }}
               {% if date_lost_from %}&date_lost_from={{ date_lost_from }}{% endif %}
               {% if date_lost_to %}&date_lost_to={{ date_lost_to }}{% endif %}
               {% if vehicle_type %}&vehicle_type={{ vehicle_type }}{% endif %}
