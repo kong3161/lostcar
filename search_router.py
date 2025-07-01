@@ -26,27 +26,26 @@ async def search_results(request: Request,
                          color: str = "",
                          reporter: str = ""):
 
-    or_conditions = []
+    filter_conditions = []
 
     if vehicle_type:
-        or_conditions.append(f"vehicle_type.eq.{vehicle_type}")
+        filter_conditions.append(f"vehicle_type=eq.{vehicle_type}")
     if brand:
-        or_conditions.append(f"brand.ilike.*{brand}*")
+        filter_conditions.append(f"brand=ilike.*{brand}*")
     if model:
-        or_conditions.append(f"model.ilike.*{model}*")
+        filter_conditions.append(f"model=ilike.*{model}*")
     if plate_number:
-        or_conditions.append(f"plate_number.ilike.*{plate_number}*")
+        filter_conditions.append(f"plate_number=ilike.*{plate_number}*")
     if plate_prefix:
-        or_conditions.append(f"plate_prefix.ilike.*{plate_prefix}*")
+        filter_conditions.append(f"plate_prefix=ilike.*{plate_prefix}*")
     if plate_province:
-        or_conditions.append(f"plate_province.ilike.*{plate_province}*")
+        filter_conditions.append(f"plate_province=ilike.*{plate_province}*")
     if color:
-        or_conditions.append(f"color.ilike.*{color}*")
+        filter_conditions.append(f"color=ilike.*{color}*")
     if reporter:
-        or_conditions.append(f"reporter.ilike.*{reporter}*")
+        filter_conditions.append(f"reporter=ilike.*{reporter}*")
 
-    or_query = ",".join(or_conditions)
-    query = f"or=({or_query})" if or_query else ""
+    query = "&".join(filter_conditions)
     url = f"{SUPABASE_URL}/rest/v1/reports?{query}&order=uploaded_at.desc"
 
     headers = {
@@ -64,4 +63,5 @@ async def search_results(request: Request,
         "debug_url": url,
         "debug_status": response.status_code,
         "debug_raw": response.text
-    })
+    }) 
+    
