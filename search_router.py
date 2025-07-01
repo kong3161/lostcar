@@ -5,6 +5,7 @@ from fastapi import APIRouter
 import os
 import httpx
 from math import ceil
+from urllib.parse import quote
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -33,19 +34,19 @@ async def search_results(request: Request,
     if vehicle_type:
         filter_conditions.append(f"vehicle_type=eq.{vehicle_type}")
     if brand:
-        filter_conditions.append(f"brand=ilike.*{brand}*")
+        filter_conditions.append(f"brand=ilike.*{quote(brand)}*")
     if model:
-        filter_conditions.append(f"model=ilike.*{model}*")
+        filter_conditions.append(f"model=ilike.*{quote(model)}*")
     if plate_number:
-        filter_conditions.append(f"plate_number=ilike.*{plate_number}*")
+        filter_conditions.append(f"plate_number=ilike.*{quote(plate_number)}*")
     if plate_prefix:
-        filter_conditions.append(f"plate_prefix=ilike.*{plate_prefix}*")
+        filter_conditions.append(f"plate_prefix=ilike.*{quote(plate_prefix)}*")
     if plate_province:
-        filter_conditions.append(f"plate_province=ilike.*{plate_province}*")
+        filter_conditions.append(f"plate_province=ilike.*{quote(plate_province)}*")
     if color:
-        filter_conditions.append(f"color=ilike.*{color}*")
+        filter_conditions.append(f"color=ilike.*{quote(color)}*")
     if reporter:
-        filter_conditions.append(f"reporter=ilike.*{reporter}*")
+        filter_conditions.append(f"reporter=ilike.*{quote(reporter)}*")
 
     query = "&".join(filter_conditions)
 
