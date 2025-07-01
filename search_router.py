@@ -64,4 +64,3 @@ async def search_results(request: Request,
         "debug_status": response.status_code,
         "debug_raw": response.text
     }) 
-    
