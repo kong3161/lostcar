@@ -48,16 +48,10 @@
 </head>
 <body>
   <div class="container">
-    <div style="background: #fff0f0; color: black; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-      <strong>🔍 Debug URL:</strong> {{ debug_url }}<br>
-      <strong>📦 Status:</strong> {{ debug_status }}<br>
-      <strong>📄 Raw:</strong>
-      <pre style="white-space: pre-wrap;">{{ debug_raw }}</pre>
-    </div>
     <h2>📋 ผลการค้นหาข้อมูลรถหาย</h2>
 
-    {% if results %}
-      {% for item in results %}
+    {% if items %}
+      {% for item in items %}
       <div class="item">
         <strong>ประเภทรถ:</strong> {{ item.vehicle_type or '-' }}<br>
         <strong>ยี่ห้อ:</strong> {{ item.brand or '-' }}<br>
