@@ -1,4 +1,3 @@
-
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -22,6 +21,8 @@ async def search_results(request: Request,
                          brand: str = "",
                          model: str = "",
                          plate_number: str = "",
+                         plate_prefix: str = "",
+                         plate_province: str = "",
                          color: str = "",
                          reporter: str = ""):
 
@@ -35,6 +36,10 @@ async def search_results(request: Request,
         or_conditions.append(f"model.ilike.*{model}*")
     if plate_number:
         or_conditions.append(f"plate_number.ilike.*{plate_number}*")
+    if plate_prefix:
+        or_conditions.append(f"plate_prefix.ilike.*{plate_prefix}*")
+    if plate_province:
+        or_conditions.append(f"plate_province.ilike.*{plate_province}*")
     if color:
         or_conditions.append(f"color.ilike.*{color}*")
     if reporter:
