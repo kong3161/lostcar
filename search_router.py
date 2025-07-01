@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter
 import os
 import httpx
+import json
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -55,7 +56,7 @@ async def search_results(request: Request,
 
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=headers)
-        results = response.json() if response.status_code == 200 else []
+        results = json.loads(response.text) if response.status_code == 200 else []
 
     return templates.TemplateResponse("results.html", {
         "request": request,
