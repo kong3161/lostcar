@@ -87,10 +87,7 @@
           {% if p == page %}
             <span class="btn disabled">{{ p }}</span>
           {% else %}
-            {% set qs = request.query_params | dict %}
-            <a class="btn" href="{{ request.url.path }}?{% for k, v in qs.items() if k != 'page' %}{{ k }}={{ v }}&{% endfor %}page={{ p }}">
-              {{ p }}
-            </a>
+            <a class="btn" href="?page={{ p }}">{{ p }}</a>
           {% endif %}
         {% endfor %}
       </div>
