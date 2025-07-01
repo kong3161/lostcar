@@ -50,8 +50,8 @@
   <div class="container">
     <h2>📋 ผลการค้นหาข้อมูลรถหาย</h2>
 
-    {% if items %}
-      {% for item in items %}
+    {% if results %}
+      {% for item in results %}
       <div class="item">
         <strong>ประเภทรถ:</strong> {{ item.vehicle_type or '-' }}<br>
         <strong>ยี่ห้อ:</strong> {{ item.brand or '-' }}<br>
