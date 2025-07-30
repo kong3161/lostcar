@@ -103,6 +103,9 @@
   </form>
   <div id="map"></div>
   <div id="heatmap-toggle" style="text-align: center; margin: 1rem;"><button onclick="toggleHeatmap()">🔥 เปิด/ปิด Heatmap</button></div>
+  <div id="marker-toggle" style="text-align: center; margin: 1rem;">
+    <button onclick="toggleMarkers()">📍 เปิด/ปิดหมุด</button>
+  </div>
   <div class="btn-group">
     <a class="btn" href="/submit">📋 แจ้งรถหาย</a>
     <a class="btn" href="/search">🔍 ค้นหา</a>
@@ -114,6 +117,7 @@
 
   <script>
     let heatmap = null;
+    let markersVisible = true;
 
     function toggleHeatmap() {
       if (!heatmap) {
@@ -135,6 +139,13 @@
         } else {
           heatmap.setMap(map);
         }
+      }
+    }
+
+    function toggleMarkers() {
+      markersVisible = !markersVisible;
+      for (const marker of allMarkers) {
+        marker.setMap(markersVisible ? map : null);
       }
     }
 
@@ -167,6 +178,7 @@
 
       // Group reports by lat/lng key
       window.markersMap = {};
+      window.allMarkers = [];
 
       for (const item of reports) {
         const lat = parseFloat(item.lat);
@@ -195,6 +207,8 @@
             anchor: new google.maps.Point(23.5, 47)
           }
         });
+
+        allMarkers.push(marker);
 
         let infoContent = '<div style="color:black; font-size: 1.05rem; font-weight: bold;">';
         for (const item of itemsAtLocation) {
