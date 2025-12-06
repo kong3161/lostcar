@@ -206,10 +206,10 @@
         const allRecovered = itemsAtLocation.every(item => item.is_recovered === true);
 
         let iconUrl = "/static/P2.png"; // สีแดง/โลโก้เดิม
-        
+
         if (allRecovered) {
-             // ใช้หมุดสีเขียวของ Google Maps
-             iconUrl = "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
+             // ใช้หมุดสีเขียวรูป P1.png จากโฟลเดอร์ static
+             iconUrl = "/static/P1.png";
         }
 
         const marker = new google.maps.Marker({
@@ -217,10 +217,9 @@
           map,
           icon: {
             url: iconUrl,
-            // ถ้าเป็นหมุดเขียว Google ไม่ต้องปรับขนาด (ใช้ขนาด Default)
-            // แต่ถ้าเป็นหมุดแดง (รูป P2.png เดิม) ให้ปรับขนาดเหมือนเดิม
-            scaledSize: allRecovered ? null : new google.maps.Size(47, 47),
-            anchor: allRecovered ? null : new google.maps.Point(23.5, 47)
+            // ปรับขนาดและ anchor สำหรับ P1.png
+            scaledSize: allRecovered ? new google.maps.Size(47, 47) : new google.maps.Size(47, 47),
+            anchor: allRecovered ? new google.maps.Point(23.5, 47) : new google.maps.Point(23.5, 47)
           }
         });
 
