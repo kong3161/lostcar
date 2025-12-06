@@ -66,6 +66,14 @@
         <strong>สถานที่:</strong> {{ item.location or '-' }}<br>
         <strong>พฤติการณ์:</strong> {{ item.details or '-' }}<br>
         <strong>ผู้แจ้ง:</strong> {{ item.reporter or '-' }}<br>
+        <div style="margin-top: 10px; padding: 10px; background-color: #e0f7fa; border-radius: 8px;">
+    <label style="cursor: pointer; font-weight: bold; color: #006064;">
+        <input type="checkbox" 
+               onchange="updateStatus('{{ item.id }}', this.checked)"
+               {% if item.is_recovered %}checked{% endif %}>
+        ✅ ตรวจพบ/ได้คืนแล้ว
+    </label>
+</div>
         {% if item.lat and item.lng %}
         <iframe src="https://maps.google.com/maps?q={{ item.lat }},{{ item.lng }}&z=15&output=embed"></iframe>
         {% endif %}
@@ -115,5 +123,35 @@
       btn.innerText = isHidden ? "📕 ซ่อนรูปภาพ" : "📷 ดูรูปภาพ";
     }
   </script>
+  <script>
+    async function updateStatus(reportId, isChecked) {
+        if (!confirm("ยืนยันการเปลี่ยนสถานะ?")) {
+            // ถ้ากด ยกเลิก ให้ติ๊กกลับเป็นเหมือนเดิม
+            event.target.checked = !isChecked; 
+            return;
+        }
+
+        try {
+            const response = await fetch(`/update-status/${reportId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: isChecked }),
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('บันทึกสถานะเรียบร้อย!');
+                // (ถ้าอยากให้หมุดเปลี่ยนสีทันที อาจต้องรีเฟรชหน้า หรือไม่ต้องทำอะไรถ้าแค่ติ๊กไว้)
+            } else {
+                alert('เกิดข้อผิดพลาด: ' + result.error);
+                event.target.checked = !isChecked; // คืนค่าเดิม
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('เชื่อมต่อ Server ไม่ได้');
+            event.target.checked = !isChecked;
+        }
+    }
+</script>
 </body>
 </html>

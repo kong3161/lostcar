@@ -88,7 +88,8 @@
     </div>
   </div>
   <p style="text-align: center; margin-top: 0.75rem; color: #ffeb3b; font-weight: bold;">
-    ⚠️ กรณีหายสถานที่เดียวกัน หมุดจะมีแค่อันเดียวเท่านั้น
+    ⚠️ กรณีหายสถานที่เดียวกัน หมุดจะมีแค่อันเดียวเท่านั้น <br>
+    (หมุดสีเขียว = ได้คืนแล้ว / หมุดสีแดง = ยังหายอยู่)
   </p>
   <form method="get" action="/map" class="search-form">
     <div class="input-group">
@@ -198,13 +199,28 @@
         const [lat, lng] = key.split(',').map(Number);
         const itemsAtLocation = markersMap[key];
 
+        // --- แก้ไข Logic เลือกสีหมุดตรงนี้ ---
+        // เช็คว่ารถทุกคันในจุดนี้ได้คืนหมดหรือยัง?
+        // (ถ้ามีคันใดคันหนึ่งยังไม่ได้คืน ให้ถือว่าเป็นจุดที่ต้องเฝ้าระวัง -> สีแดง)
+        // แต่ถ้าทุกคันในจุดนี้ is_recovered = true หมด -> สีเขียว
+        const allRecovered = itemsAtLocation.every(item => item.is_recovered === true);
+
+        let iconUrl = "/static/P2.png"; // สีแดง/โลโก้เดิม
+        
+        if (allRecovered) {
+             // ใช้หมุดสีเขียวของ Google Maps
+             iconUrl = "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
+        }
+
         const marker = new google.maps.Marker({
           position: { lat, lng },
           map,
           icon: {
-            url: "/static/P2.png",
-            scaledSize: new google.maps.Size(47, 47),
-            anchor: new google.maps.Point(23.5, 47)
+            url: iconUrl,
+            // ถ้าเป็นหมุดเขียว Google ไม่ต้องปรับขนาด (ใช้ขนาด Default)
+            // แต่ถ้าเป็นหมุดแดง (รูป P2.png เดิม) ให้ปรับขนาดเหมือนเดิม
+            scaledSize: allRecovered ? null : new google.maps.Size(47, 47),
+            anchor: allRecovered ? null : new google.maps.Point(23.5, 47)
           }
         });
 
@@ -212,8 +228,12 @@
 
         let infoContent = '<div style="color:black; font-size: 1.05rem; font-weight: bold;">';
         for (const item of itemsAtLocation) {
+          // เพิ่มข้อความ (คืนแล้ว) ใน Popup ด้วยจะได้ชัดเจน
+          const statusText = item.is_recovered ? '<span style="color:green;">(คืนแล้ว)</span>' : '<span style="color:red;">(ยังไม่คืน)</span>';
+          
           infoContent += `
             <hr>
+            <strong>สถานะ:</strong> ${statusText}<br>
             <strong>ประเภทรถ:</strong> ${item.vehicle_type || '-'}<br>
             <strong>ยี่ห้อ:</strong> ${item.brand || '-'}<br>
             <strong>รุ่น:</strong> ${item.model || '-'}<br>

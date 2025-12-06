@@ -15,6 +15,7 @@ from fastapi import FastAPI, Form, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi import Body
 
 from supabase import create_client
 
@@ -433,3 +434,15 @@ async def show_map(request: Request, from_date: str = None, to_date: str = None)
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
+    
+    # API สำหรับอัปเดตสถานะว่าเจอรถแล้ว
+@app.post("/update-status/{report_id}")
+async def update_status(report_id: int, status: bool = Body(..., embed=True)):
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    try:
+        # อัปเดตค่า is_recovered ในฐานข้อมูล
+        result = supabase.table("reports").update({"is_recovered": status}).eq("id", report_id).execute()
+        return JSONResponse(content={"success": True, "data": result.data})
+    except Exception as e:
+        print("Error updating status:", e)
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
