@@ -201,25 +201,26 @@
 
         // --- แก้ไข Logic เลือกสีหมุดตรงนี้ ---
         // เช็คว่ารถทุกคันในจุดนี้ได้คืนหมดหรือยัง?
-        // (ถ้ามีคันใดคันหนึ่งยังไม่ได้คืน ให้ถือว่าเป็นจุดที่ต้องเฝ้าระวัง -> สีแดง)
-        // แต่ถ้าทุกคันในจุดนี้ is_recovered = true หมด -> สีเขียว
-        const allRecovered = itemsAtLocation.every(item => item.is_recovered === true);
+        // รองรับค่าที่อาจเป็น boolean, number หรือ string (true / "true" / 1 / "1")
+        const allRecovered = itemsAtLocation.every(item => {
+          const v = item.is_recovered;
+          return v === true || v === 1 || v === "1" || String(v).toLowerCase() === "true";
+        });
 
-        let iconUrl = "/static/P2.png"; // สีแดง/โลโก้เดิม
+        // สร้าง URL เป็น absolute + เพิ่ม cache-bust query param เพื่อบังคับโหลดไฟล์ใหม่เมื่อเปลี่ยน
+        const baseOrigin = window.location && window.location.origin ? window.location.origin : "";
+        const version = Date.now();
+        const iconUrl = baseOrigin + (allRecovered ? `/static/P1.png?v=${version}` : `/static/P2.png?v=${version}`);
 
-        if (allRecovered) {
-             // ใช้หมุดสีเขียวรูป P1.png จากโฟลเดอร์ static
-             iconUrl = "/static/P1.png";
-        }
+        console.log('map: location', key, 'allRecovered', allRecovered, 'iconUrl', iconUrl);
 
         const marker = new google.maps.Marker({
           position: { lat, lng },
           map,
           icon: {
             url: iconUrl,
-            // ปรับขนาดและ anchor สำหรับ P1.png
-            scaledSize: allRecovered ? new google.maps.Size(47, 47) : new google.maps.Size(47, 47),
-            anchor: allRecovered ? new google.maps.Point(23.5, 47) : new google.maps.Point(23.5, 47)
+            scaledSize: new google.maps.Size(47, 47),
+            anchor: new google.maps.Point(23.5, 47)
           }
         });
 
@@ -228,7 +229,8 @@
         let infoContent = '<div style="color:black; font-size: 1.05rem; font-weight: bold;">';
         for (const item of itemsAtLocation) {
           // เพิ่มข้อความ (คืนแล้ว) ใน Popup ด้วยจะได้ชัดเจน
-          const statusText = item.is_recovered ? '<span style="color:green;">(คืนแล้ว)</span>' : '<span style="color:red;">(ยังไม่คืน)</span>';
+          const recoveredFlag = (item.is_recovered === true || item.is_recovered === 1 || item.is_recovered === "1" || String(item.is_recovered).toLowerCase() === "true");
+          const statusText = recoveredFlag ? '<span style="color:green;">(คืนแล้ว)</span>' : '<span style="color:red;">(ยังไม่คืน)</span>';
           
           infoContent += `
             <hr>
