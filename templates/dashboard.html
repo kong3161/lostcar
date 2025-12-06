@@ -53,7 +53,7 @@
       </div>
       <div style="background:#fff; padding:12px 16px; border-radius:8px; min-width:160px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.06);">
         <div style="font-size:0.9rem; color:#666;">จำนวนรถที่ได้คืน</div>
-        <div id="totalRecovered" style="font-size:1.8rem; font-weight:700; color:#111;">{% if total_recovered is defined %}{{ total_recovered }}{% else %}Loading...{% endif %}</div>
+        <div id="totalRecovered" style="font-size:1.8rem; font-weight:700; color:#111;">{% if total_recovered is defined %}{{ total_recovered }}{% else %}0{% endif %}</div>
       </div>
     </div>
     <form method="get" action="/dashboard" class="text-center mb-6 space-x-2">
@@ -221,8 +221,8 @@
       const container = document.getElementById("model-charts");
       const modelsByType = data.models_by_type;
       const timeStats = data.time_ranges;
-      // update total recovered if backend provides it
-      if (typeof data.total_recovered !== 'undefined') document.getElementById('totalRecovered').textContent = data.total_recovered;
+      // update total recovered (use 0 as fallback when backend doesn't provide it)
+      document.getElementById('totalRecovered').textContent = (typeof data.total_recovered !== 'undefined' && data.total_recovered !== null) ? data.total_recovered : 0;
 
       for (const [typeName, models] of Object.entries(modelsByType)) {
         const labels = Object.keys(models);
