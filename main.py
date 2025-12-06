@@ -224,55 +224,93 @@ async def dashboard(request: Request):
         "query_params": request.query_params
     })
 
+
 @app.get("/dashboard-data")
-async def dashboard_data(from_date: str = None, to_date: str = None):
-    headers = {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
+async def dashboard_data(request: Request, from_date: str = None, to_date: str = None):
+    """Return dashboard data filtered by optional from_date/to_date.
+    Response JSON includes: zone_counts, models_by_type, time_ranges, total_recovered.
+    """
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    filter_parts = []
-    if from_date:
-        filter_parts.append(f"date_lost=gte.{from_date}")
-    if to_date:
-        filter_parts.append(f"date_lost=lte.{to_date}")
-    filter_query = "&".join(filter_parts)
+        # Normalize and build inclusive to_date when user supplies YYYY-MM-DD
+        q = request.query_params
+        fd = q.get("from_date") or from_date
+        td = q.get("to_date") or to_date
+        if fd and len(fd) == 10:
+            # keep as date string YYYY-MM-DD
+            from_filter = fd
+        else:
+            from_filter = fd
+        if td and len(td) == 10:
+            to_filter = td + "T23:59:59"
+        else:
+            to_filter = td
 
-    url = f"{SUPABASE_URL}/rest/v1/reports?select=*"
-    if filter_query:
-        url += f"&{filter_query}"
+        # Build supabase query (select needed columns)
+        base = supabase.table("reports").select("id,zone,is_recovered,model,brand,vehicle_type,time_reported,date_lost")
+        if from_filter:
+            base = base.gte("date_lost", from_filter)
+        if to_filter:
+            base = base.lte("date_lost", to_filter)
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
+        resp = base.execute()
+        rows = getattr(resp, "data", None) or []
 
-    data = response.json()
+        # zone_counts and total_recovered
+        zone_counts = {}
+        total_recovered = 0
+        for r in rows:
+            z = r.get("zone") or "(ไม่มีเขต)"
+            zone_counts[z] = zone_counts.get(z, 0) + 1
+            v = r.get("is_recovered")
+            if v is True or v == 1 or str(v).lower() == "true":
+                total_recovered += 1
 
-    # แยกข้อมูลรุ่นตามประเภทรถ
-    models_by_type = {}
-    time_ranges = {"00.01-08.00 น.": 0, "08.01-16.00 น.": 0, "16.01-24.00 น.": 0}
+        # models_by_type aggregation
+        models_by_type = {}
+        for r in rows:
+            ttype = r.get("vehicle_type") or r.get("brand") or "อื่นๆ"
+            model = (r.get("model") or "ไม่ระบุ").strip()
+            models_by_type.setdefault(ttype, {})
+            models_by_type[ttype][model] = models_by_type[ttype].get(model, 0) + 1
 
-    for row in data:
-        type_ = row.get("vehicle_type", "ไม่ระบุ")
-        model = row.get("model", "ไม่ระบุ").strip().upper()
+        # time_ranges buckets
+        time_ranges = {"00.01-08.00 น.": 0, "08.01-16.00 น.": 0, "16.01-24.00 น.": 0}
+        for r in rows:
+            t = r.get("time_reported") or r.get("date_lost")
+            if not t:
+                continue
+            try:
+                hour = None
+                if isinstance(t, str) and "T" in t:
+                    hour = int(t.split("T")[1].split(":")[0])
+                elif isinstance(t, str) and " " in t:
+                    hour = int(t.split(" ")[1].split(":")[0])
+                else:
+                    hour = int(str(t).split(":")[0])
+                if hour is None:
+                    continue
+                if 0 <= hour <= 8:
+                    time_ranges["00.01-08.00 น."] += 1
+                elif 8 < hour <= 16:
+                    time_ranges["08.01-16.00 น."] += 1
+                else:
+                    time_ranges["16.01-24.00 น."] += 1
+            except Exception:
+                continue
 
-        if type_ not in models_by_type:
-            models_by_type[type_] = {}
-        models_by_type[type_][model] = models_by_type[type_].get(model, 0) + 1
+        result = {
+            "zone_counts": zone_counts,
+            "models_by_type": models_by_type,
+            "time_ranges": time_ranges,
+            "total_recovered": total_recovered
+        }
+        return JSONResponse(content=result)
 
-        t = row.get("time_reported")
-        if t:
-            h = int(str(t).split(":")[0])
-            if 0 <= h <= 8:
-                time_ranges["00.01-08.00 น."] += 1
-            elif 8 < h <= 16:
-                time_ranges["08.01-16.00 น."] += 1
-            else:
-                time_ranges["16.01-24.00 น."] += 1
-
-    return {
-        "models_by_type": models_by_type,
-        "time_ranges": time_ranges
-    }
+    except Exception as e:
+        print("Error in /dashboard-data:", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/search", response_class=HTMLResponse)
 async def search_page(request: Request):
