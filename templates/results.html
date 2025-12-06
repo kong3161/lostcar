@@ -52,7 +52,7 @@
 
     {% if items %}
       {% for item in items %}
-      <div class="item">
+      <div id="report-{{ item.id }}" class="item">
         <strong>ประเภทรถ:</strong> {{ item.vehicle_type or '-' }}<br>
         <strong>ยี่ห้อ:</strong> {{ item.brand or '-' }}<br>
         <strong>รุ่น:</strong> {{ item.model or '-' }}<br>
@@ -68,9 +68,7 @@
         <strong>ผู้แจ้ง:</strong> {{ item.reporter or '-' }}<br>
         <div style="margin-top: 10px; padding: 10px; background-color: #e0f7fa; border-radius: 8px;">
     <label style="cursor: pointer; font-weight: bold; color: #006064;">
-        <input type="checkbox" 
-               onchange="updateStatus('{{ item.id }}', this.checked)"
-               {% if item.is_recovered %}checked{% endif %}>
+        <input type="checkbox" data-id="{{ item.id }}" {% if item.is_recovered %}checked{% endif %}>
         ✅ ตรวจพบ/ได้คืนแล้ว
     </label>
 </div>
@@ -123,35 +121,73 @@
       btn.innerText = isHidden ? "📕 ซ่อนรูปภาพ" : "📷 ดูรูปภาพ";
     }
   </script>
-  <script>
-    async function updateStatus(reportId, isChecked) {
-        if (!confirm("ยืนยันการเปลี่ยนสถานะ?")) {
-            // ถ้ากด ยกเลิก ให้ติ๊กกลับเป็นเหมือนเดิม
-            event.target.checked = !isChecked; 
-            return;
-        }
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Helper to coerce values
+  function parseBool(v){
+    if (typeof v === "boolean") return v;
+    if (typeof v === "number") return v !== 0;
+    if (!v) return false;
+    const s = String(v).trim().toLowerCase();
+    return ["1","true","yes","on"].includes(s);
+  }
 
-        try {
-            const response = await fetch(`/update-status/${reportId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: isChecked }),
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                alert('บันทึกสถานะเรียบร้อย!');
-                // (ถ้าอยากให้หมุดเปลี่ยนสีทันที อาจต้องรีเฟรชหน้า หรือไม่ต้องทำอะไรถ้าแค่ติ๊กไว้)
-            } else {
-                alert('เกิดข้อผิดพลาด: ' + result.error);
-                event.target.checked = !isChecked; // คืนค่าเดิม
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('เชื่อมต่อ Server ไม่ได้');
-            event.target.checked = !isChecked;
-        }
+  function getReportIdFromElement(el){
+    if (!el) return null;
+    if (el.dataset && el.dataset.id) return el.dataset.id;
+    let p = el;
+    while(p && p !== document.body){
+      if (p.id){
+        const m = p.id.match(/^report-(\d+)$/);
+        if (m) return m[1];
+      }
+      p = p.parentElement;
     }
+    if (el.name && /^\d+$/.test(el.name)) return el.name;
+    if (el.value && /^\d+$/.test(el.value)) return el.value;
+    return null;
+  }
+
+  async function toggleRecovered(reportId, checked, checkboxEl){
+    try {
+      const resp = await fetch(`/update-status/${reportId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: checked })
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) {
+        console.error("Update failed", data);
+        alert("อัปเดตไม่สำเร็จ ลองใหม่");
+        checkboxEl.checked = !checked;
+        return false;
+      }
+      const container = document.getElementById("report-" + reportId);
+      if (container) {
+        if (checked) container.classList.add("report-found");
+        else container.classList.remove("report-found");
+      }
+      if (window.refreshMapMarkers) window.refreshMapMarkers();
+      return true;
+    } catch(err){
+      console.error("Network error", err);
+      alert("การเชื่อมต่อมีปัญหา ลองใหม่");
+      checkboxEl.checked = !checked;
+      return false;
+    }
+  }
+
+  const allCheckboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+  allCheckboxes.forEach(function(chk){
+    const reportId = getReportIdFromElement(chk);
+    if (!reportId) return;
+    chk.addEventListener("change", function(e){
+      const checked = !!e.currentTarget.checked;
+      toggleRecovered(reportId, checked, e.currentTarget);
+    });
+    if (!chk.dataset.id) chk.dataset.id = reportId;
+  });
+});
 </script>
 </body>
 </html>

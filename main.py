@@ -435,14 +435,41 @@ async def show_map(request: Request, from_date: str = None, to_date: str = None)
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     })
     
-    # API สำหรับอัปเดตสถานะว่าเจอรถแล้ว
+    
 @app.post("/update-status/{report_id}")
-async def update_status(report_id: int, status: bool = Body(..., embed=True)):
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+async def update_status(report_id: int, request: Request):
+    """
+    Accept either JSON body { "status": true } or form-encoded/body with field 'status'.
+    This endpoint will update the boolean column `is_recovered` for the given report id.
+    It is resilient to different content types and will coerce common truthy string values.
+    """
     try:
-        # อัปเดตค่า is_recovered ในฐานข้อมูล
+        # Try to parse JSON body first
+        try:
+            payload = await request.json()
+        except Exception:
+            # Fallback to form body
+            form = await request.form()
+            payload = dict(form)
+
+        # Accept multiple possible keys for compatibility
+        raw_status = None
+        if isinstance(payload, dict):
+            for key in ("status", "is_recovered", "found"):
+                if key in payload:
+                    raw_status = payload.get(key)
+                    break
+
+        # Normalize status to boolean
+        if isinstance(raw_status, str):
+            raw_status_val = raw_status.strip().lower()
+            status = raw_status_val in ("1", "true", "yes", "on")
+        else:
+            status = bool(raw_status)
+
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         result = supabase.table("reports").update({"is_recovered": status}).eq("id", report_id).execute()
-        return JSONResponse(content={"success": True, "data": result.data})
+        return JSONResponse(content={"success": True, "data": getattr(result, "data", None)})
     except Exception as e:
         print("Error updating status:", e)
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
