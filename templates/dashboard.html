@@ -46,6 +46,16 @@
 <body>
   <div class="container">
     <h1>📊 แดชบอร์ดสถิติรถหาย</h1>
+    <div style="display:flex; gap:1rem; justify-content:center; margin-bottom:1rem;">
+      <div style="background:#fff; padding:12px 16px; border-radius:8px; min-width:160px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.06);">
+        <div style="font-size:0.9rem; color:#666;">รวมรถที่หาย</div>
+        <div id="totalLost" style="font-size:1.8rem; font-weight:700; color:#111;">{{ zone_counts.values()|sum }}</div>
+      </div>
+      <div style="background:#fff; padding:12px 16px; border-radius:8px; min-width:160px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.06);">
+        <div style="font-size:0.9rem; color:#666;">จำนวนรถที่ได้คืน</div>
+        <div id="totalRecovered" style="font-size:1.8rem; font-weight:700; color:#111;">{% if total_recovered is defined %}{{ total_recovered }}{% else %}Loading...{% endif %}</div>
+      </div>
+    </div>
     <form method="get" action="/dashboard" class="text-center mb-6 space-x-2">
       <label for="from_date" style="font-weight:bold;">จากวันที่:</label>
       <input type="date" id="from_date" name="from_date" value="{{ request.query_params.get('from_date', '') }}" class="border rounded px-2 py-1">
@@ -211,6 +221,8 @@
       const container = document.getElementById("model-charts");
       const modelsByType = data.models_by_type;
       const timeStats = data.time_ranges;
+      // update total recovered if backend provides it
+      if (typeof data.total_recovered !== 'undefined') document.getElementById('totalRecovered').textContent = data.total_recovered;
 
       for (const [typeName, models] of Object.entries(modelsByType)) {
         const labels = Object.keys(models);
