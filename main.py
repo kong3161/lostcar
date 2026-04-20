@@ -32,7 +32,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 # ฟอร์มเลือกช่วงวันที่สำหรับรายงาน
 @app.get("/report", response_class=HTMLResponse)
 async def report_form(request: Request):
-    return templates.TemplateResponse("report.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="report.html", context={"request": request})
 
 # สร้างไฟล์ Excel รายงานรถหายตามช่วงวันที่
 @app.get("/export")
@@ -96,7 +96,7 @@ async def home(request: Request):
 
 @app.get("/submit", response_class=HTMLResponse)
 async def form_page(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="index.html", context={"request": request})
 
 @app.post("/submit")
 async def submit(
@@ -168,13 +168,13 @@ async def submit(
 
         report_id = result.data[0]["id"]
 
-        return templates.TemplateResponse("index.html", {"request": request, "success": True})
+        return templates.TemplateResponse(request=request, name="index.html", context={"request": request, "success": True})
 
     except Exception as e:
         import traceback
         traceback.print_exc()
         print("❌ เกิดข้อผิดพลาด:", e)
-        return templates.TemplateResponse("index.html", {"request": request, "error": True})
+        return templates.TemplateResponse(request=request, name="index.html", context={"request": request, "error": True})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
@@ -218,7 +218,7 @@ async def dashboard(request: Request):
     all_zones = ["เขตตรวจที่ 1", "เขตตรวจที่ 2", "เขตตรวจที่ 3", "เขตตรวจที่ 4"]
     ordered_counts = {zone: zone_counts.get(zone, 0) for zone in all_zones}
 
-    return templates.TemplateResponse("dashboard.html", {
+    return templates.TemplateResponse(request=request, name="dashboard.html", context={
         "request": request,
         "zone_counts": ordered_counts,
         "query_params": request.query_params
@@ -314,7 +314,7 @@ async def dashboard_data(request: Request, from_date: str = None, to_date: str =
 
 @app.get("/search", response_class=HTMLResponse)
 async def search_page(request: Request):
-    return templates.TemplateResponse("search.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="search.html", context={"request": request})
 
 @app.get("/results", response_class=HTMLResponse)
 async def show_results(
@@ -421,7 +421,7 @@ async def show_results(
     query_params_filtered = [(k, v) for k, v in query_params_no_page if k != "page"]
     query_string = "&".join(f"{k}={v}" for k, v in query_params_filtered)
 
-    return templates.TemplateResponse("results.html", {
+    return templates.TemplateResponse(request=request, name="results.html", context={
         "request": request,
         "items": items,
         "debug_url": url,
@@ -467,7 +467,7 @@ async def show_map(request: Request, from_date: str = None, to_date: str = None)
     response = query.execute()
     reports = response.data if response.data else []
 
-    return templates.TemplateResponse("map.html", {
+    return templates.TemplateResponse(request=request, name="map.html", context={
         "request": request,
         "reports": reports,
         "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
