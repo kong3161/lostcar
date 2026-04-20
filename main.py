@@ -92,7 +92,7 @@ async def export_excel(from_date: str, to_date: str):
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="home.html", context={"request": request})
 
 @app.get("/submit", response_class=HTMLResponse)
 async def form_page(request: Request):
