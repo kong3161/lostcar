@@ -124,29 +124,39 @@
       if (!heatmap) {
         const heatmapData = [];
 
-        for (const key in markersMap) {
+        // ใช้ window.markersMap เพื่อป้องกันปัญหาตัวแปรหาไม่เจอ
+        for (const key in window.markersMap) {
           const [lat, lng] = key.split(',').map(Number);
-          heatmapData.push(new google.maps.LatLng(lat, lng));
+          const incidentCount = window.markersMap[key].length; // นับจำนวนรถที่หายในจุดนี้
+
+          // ส่งค่า Location และ Weight เพื่อให้น้ำหนักสีชัดเจนขึ้น
+          heatmapData.push({
+            location: new google.maps.LatLng(lat, lng),
+            weight: incidentCount
+          });
         }
 
         heatmap = new google.maps.visualization.HeatmapLayer({
           data: heatmapData,
-          radius: 30
+          radius: 35,    // ปรับรัศมีให้ใหญ่ขึ้นเล็กน้อย
+          opacity: 0.8   // ปรับความเข้มให้เห็นชัดเจนขึ้น
         });
-        heatmap.setMap(map);
+        
+        heatmap.setMap(window.map); // ใช้ window.map
       } else {
         if (heatmap.getMap()) {
           heatmap.setMap(null);
         } else {
-          heatmap.setMap(map);
+          heatmap.setMap(window.map);
         }
       }
     }
 
     function toggleMarkers() {
       markersVisible = !markersVisible;
-      for (const marker of allMarkers) {
-        marker.setMap(markersVisible ? map : null);
+      // ใช้ window.allMarkers และ window.map เพื่อความเสถียร
+      for (const marker of window.allMarkers) {
+        marker.setMap(markersVisible ? window.map : null);
       }
     }
 
@@ -172,7 +182,7 @@
         zIndex: 0
       });
 
-      polygon.setMap(map);
+      polygon.setMap(window.map);
 
       const reports = {{ reports | tojson }};
       console.log("Reports loaded:", reports);
@@ -187,36 +197,32 @@
         const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
 
         if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-          if (!markersMap[key]) {
-            markersMap[key] = [];
+          if (!window.markersMap[key]) {
+            window.markersMap[key] = [];
           }
-          markersMap[key].push(item);
+          window.markersMap[key].push(item);
         }
       }
 
       // Create one marker per unique location with combined info
-      for (const key in markersMap) {
+      for (const key in window.markersMap) {
         const [lat, lng] = key.split(',').map(Number);
-        const itemsAtLocation = markersMap[key];
+        const itemsAtLocation = window.markersMap[key];
 
-        // --- แก้ไข Logic เลือกสีหมุดตรงนี้ ---
         // เช็คว่ารถทุกคันในจุดนี้ได้คืนหมดหรือยัง?
-        // รองรับค่าที่อาจเป็น boolean, number หรือ string (true / "true" / 1 / "1")
         const allRecovered = itemsAtLocation.every(item => {
           const v = item.is_recovered;
           return v === true || v === 1 || v === "1" || String(v).toLowerCase() === "true";
         });
 
-        // สร้าง URL เป็น absolute + เพิ่ม cache-bust query param เพื่อบังคับโหลดไฟล์ใหม่เมื่อเปลี่ยน
+        // สร้าง URL เป็น absolute + เพิ่ม cache-bust query param
         const baseOrigin = window.location && window.location.origin ? window.location.origin : "";
         const version = Date.now();
         const iconUrl = baseOrigin + (allRecovered ? `/static/P1.png?v=${version}` : `/static/P2.png?v=${version}`);
 
-        console.log('map: location', key, 'allRecovered', allRecovered, 'iconUrl', iconUrl);
-
         const marker = new google.maps.Marker({
           position: { lat, lng },
-          map,
+          map: window.map,
           icon: {
             url: iconUrl,
             scaledSize: new google.maps.Size(47, 47),
@@ -224,11 +230,10 @@
           }
         });
 
-        allMarkers.push(marker);
+        window.allMarkers.push(marker);
 
         let infoContent = '<div style="color:black; font-size: 1.05rem; font-weight: bold;">';
         for (const item of itemsAtLocation) {
-          // เพิ่มข้อความ (คืนแล้ว) ใน Popup ด้วยจะได้ชัดเจน
           const recoveredFlag = (item.is_recovered === true || item.is_recovered === 1 || item.is_recovered === "1" || String(item.is_recovered).toLowerCase() === "true");
           const statusText = recoveredFlag ? '<span style="color:green;">(คืนแล้ว)</span>' : '<span style="color:red;">(ยังไม่คืน)</span>';
           
@@ -250,7 +255,7 @@
         });
 
         marker.addListener("click", () => {
-          infoWindow.open(map, marker);
+          infoWindow.open(window.map, marker);
         });
       }
     }
